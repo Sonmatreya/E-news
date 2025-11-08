@@ -32,7 +32,7 @@ class newsController {
 
             const { url } = await cloudinary.uploader.upload(files.image[0].filepath, { folder: 'news_images' })
             const { title, description, category: selectedCategory } = fields
-            const status = (role === 'reporter' || role === 'photographer') ? 'submitted' : 'draft'
+            const status = 'draft'
             const news = await newsModel.create({
                 writerId: id,
                 title: title[0].trim(),
