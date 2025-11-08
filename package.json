@@ -1,0 +1,21 @@
+{
+  "name": "new_portal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run --prefix backend server\" \"npm run --prefix frontend dev\"",
+    "build": "npm run --prefix frontend build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.2"
+  },
+  "dependencies": {
+    "react-html-parser": "^2.0.2",
+    "sharp": "^0.34.4"
+  }
+}
