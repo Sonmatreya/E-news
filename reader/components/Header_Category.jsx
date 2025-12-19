@@ -80,6 +80,7 @@ const Header_Category = () => {
                     </div>
                 </div>
             </div>
+            
             {
                 cate_show && <div className='flex flex-wrap lg:hidden py-2 px-[30px]'>
                     <Link className={`px-4 font-medium py-[5px] ${path === '/' ? 'bg-[#00000026]' : ''}`} href={'/'} >Home</Link>
