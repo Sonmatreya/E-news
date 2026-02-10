@@ -7,7 +7,7 @@ import PopularNews from "@/components/news/PopularNews";
 import NewsCard from "@/components/news/items/NewsCard";
 import SimpleDetailsNewCard from "@/components/news/items/SimpleDetailsNewCard";
 import React from "react";
-import htmlParser from 'react-html-parser'
+import parse from "html-react-parser";
 import { base_api_url } from '../../../config/config'
 import RelatedNews from "@/components/news/RelatedNews";
 import RecentNews from "@/components/news/RecentNews";
@@ -44,7 +44,7 @@ const Details = async ({ params }) => {
                       <span>{news?.date}/</span>
                       <span>{news?.writerName}</span>
                     </div>
-                    <div>{htmlParser(news?.description)}</div>
+                    <div>{parse(news?.description)}</div>
                   </div>
                 </div>
               </div>
