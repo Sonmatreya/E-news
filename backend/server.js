@@ -12,16 +12,23 @@ dotenv.config()
 
 app.use(body_parser.json())
 
-// CORS CONFIG
+// ✅ CORS CONFIG FIX
 const allowedOrigins = process.env.MODE === 'production'
     ? ['https://e-news-reader.onrender.com']
     : ['http://localhost:5173', 'http://localhost:3000'];
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true)
+        } else {
+            callback(new Error("Not allowed by CORS"))
+        }
+    },
     credentials: true
 }));
 
+// Routes
 app.use('/', require('./routes/authRoutes'))
 app.use('/', require('./routes/newsRoute'))
 
