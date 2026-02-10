@@ -2,9 +2,10 @@ const production = 'production'
 const local = 'dev'
 
 const local_api_url = 'http://localhost:5000'
-const production_api_url = 'http://localhost:5000'
 
-const mode = local
+const production_api_url = 'https://e-news-dkp7.onrender.com'
+
+const mode = production  
 
 let base_api_url = ''
 
