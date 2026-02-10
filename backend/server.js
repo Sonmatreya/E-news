@@ -9,16 +9,22 @@ dotenv.config()
 
 app.use(body_parser.json())
 
-if (process.env.mode === 'production') {
-    app.use(cors())
+// CORS CONFIG
+if (process.env.MODE === 'production') {
+    app.use(cors({
+        origin: 'https://e-news-reader.onrender.com',
+        credentials: true
+    }))
 } else {
     app.use(cors({
-        origin: ["http://localhost:5173", "http://localhost:3000"]
+        origin: ["http://localhost:5173", "http://localhost:3000"],
+        credentials: true
     }))
 }
 
 app.use('/', require('./routes/authRoutes'))
 app.use('/', require('./routes/newsRoute'))
+
 app.get('/', (req, res) => res.send('Hello World!'))
 
 const port = process.env.PORT || 5000
@@ -26,7 +32,7 @@ const port = process.env.PORT || 5000
 const startServer = async () => {
     try {
         await db_connect()
-        app.listen(port, () => console.log(`Server is running on port ${port}`))
+        app.listen(port, () => console.log(`Server running on port ${port}`))
     } catch (error) {
         console.error('Failed to start server:', error)
         process.exit(1)

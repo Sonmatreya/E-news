@@ -1,13 +1,17 @@
 const production = 'production'
-const development = 'development'
+const local = 'dev'
 
-const mode = development
-let base_url = ''
+const local_api_url = 'http://localhost:5000'
+const production_api_url = 'https://e-news-dkp7.onrender.com'
+
+const mode = production
+
+let base_api_url = ''
 
 if (mode === production) {
-    base_url = ""
+    base_api_url = production_api_url
 } else {
-    base_url = 'http://localhost:5000'
+    base_api_url = local_api_url
 }
 
-export { base_url }
+export { base_api_url }
