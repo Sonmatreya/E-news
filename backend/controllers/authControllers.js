@@ -2,9 +2,56 @@ const authModel = require('../models/authModel')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
+// In-memory store for login attempts (in production, use Redis or DB)
+const loginAttempts = new Map()
+
+// Anomaly detection: track failed login attempts per IP
+const checkLoginAttempts = (ip) => {
+    const now = new Date()
+    const record = loginAttempts.get(ip) || { attempts: 0, lastAttempt: now, blockedUntil: null }
+
+    if (record.blockedUntil && now < record.blockedUntil) {
+        return { blocked: true, remainingTime: Math.ceil((record.blockedUntil - now) / 1000 / 60) }
+    }
+
+    // Reset attempts if more than 15 minutes have passed
+    if (record.lastAttempt && (now - record.lastAttempt) > 15 * 60 * 1000) {
+        record.attempts = 0
+    }
+
+    return { blocked: false, record }
+}
+
+const recordFailedAttempt = (ip) => {
+    const now = new Date()
+    const record = loginAttempts.get(ip) || { attempts: 0, lastAttempt: now, blockedUntil: null }
+
+    record.attempts += 1
+    record.lastAttempt = now
+
+    if (record.attempts >= 5) {
+        record.blockedUntil = new Date(now.getTime() + 15 * 60 * 1000) // Block for 15 minutes
+    }
+
+    loginAttempts.set(ip, record)
+}
+
+const recordSuccessfulLogin = (ip) => {
+    loginAttempts.delete(ip) // Reset on successful login
+}
+
 class authController {
     login = async (req, res) => {
         const { email, password } = req.body
+        const clientIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown'
+
+        // Check for brute force protection
+        const attemptCheck = checkLoginAttempts(clientIP)
+        if (attemptCheck.blocked) {
+            return res.status(429).json({
+                message: `Too many failed login attempts. Try again in ${attemptCheck.remainingTime} minutes.`
+            })
+        }
 
         if (!email) {
             return res.status(404).json({ message: 'Please provide your email' })
@@ -18,6 +65,9 @@ class authController {
             if (user) {
                 const match = await bcrypt.compare(password, user.password)
                 if (match) {
+                    // Successful login: reset attempts
+                    recordSuccessfulLogin(clientIP)
+
                     // Generate employeeId if not present (for existing users)
                     let employeeId = user.employeeId
                     if (!employeeId) {
@@ -76,6 +126,8 @@ class authController {
                     })
                     return res.status(200).json({ message: 'login success', token })
                 } else {
+                    // Failed login: record attempt
+                    recordFailedAttempt(clientIP)
                     return res.status(404).json({ message: 'invalid password' })
                 }
             } else {

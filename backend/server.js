@@ -5,22 +5,22 @@ const body_parser = require('body-parser')
 const cors = require('cors')
 const db_connect = require('./utils/db')
 
+// Trust proxy for IP detection
+app.set('trust proxy', 1)
+
 dotenv.config()
 
 app.use(body_parser.json())
 
 // CORS CONFIG
-if (process.env.MODE === 'production') {
-    app.use(cors({
-        origin: 'https://e-news-reader.onrender.com',
-        credentials: true
-    }))
-} else {
-    app.use(cors({
-        origin: ["http://localhost:5173", "http://localhost:3000"],
-        credentials: true
-    }))
-}
+const allowedOrigins = process.env.MODE === 'production'
+    ? ['https://e-news-reader.onrender.com']
+    : ['http://localhost:5173', 'http://localhost:3000'];
+
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+}));
 
 app.use('/', require('./routes/authRoutes'))
 app.use('/', require('./routes/newsRoute'))
