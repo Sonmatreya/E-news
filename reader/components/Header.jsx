@@ -31,7 +31,7 @@ const Header = () => {
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
                     </span>
                     <span className='font-semibold text-white text-[13px]'>LIVE</span>
-                    <span className='text-[13px] font-medium ml-2'>{currentTime}</span>
+                    <span className='text-[13px] font-medium ml-2' suppressHydrationWarning={true}>{currentTime}</span>
                 </div>
 
                 <div className='flex gap-x-[1px]'>
