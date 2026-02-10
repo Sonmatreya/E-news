@@ -10,16 +10,23 @@ import NewsCard from "@/components/news/items/NewsCard";
 import Footer from "@/components/Footer";
 import { base_api_url } from "@/config/config";
 
+export const dynamic = 'force-dynamic';
+
 const Home = async () => {
-  const news_data = await fetch(`${base_api_url}/api/all/news`, {
-    next: {
-      revalidate: 5,
-    },
-  });
+  let news = {};
 
-  let news = await news_data?.json();
+  try {
+    const news_data = await fetch(`${base_api_url}/api/all/news`, {
+      next: {
+        revalidate: 5,
+      },
+    });
 
-  news = news.news
+    const data = await news_data?.json();
+    news = data.news || {};
+  } catch (error) {
+    console.error('Failed to fetch news:', error);
+  }
 
   // Initialize default empty arrays for categories to prevent undefined errors
   const defaultCategories = {

@@ -13,6 +13,8 @@ import RelatedNews from "@/components/news/RelatedNews";
 import RecentNews from "@/components/news/RecentNews";
 import Image from "next/image";
 
+export const dynamic = 'force-dynamic';
+
 const Details = async ({ params }) => {
 
   const { slug } = params;
