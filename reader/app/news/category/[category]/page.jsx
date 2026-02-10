@@ -37,7 +37,7 @@ const CategoryNews = async ({ params }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {
                     news && news.length > 0 && news.map((item, i) => (
-                      <SimpleDetailsNewCard news={item} type="details-news" height={200} />
+                      <SimpleDetailsNewCard key={i} news={item} type="details-news" height={200} />
                     ))
                   }
                 </div>
