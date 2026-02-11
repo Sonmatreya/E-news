@@ -1,11 +1,20 @@
 const mongoose = require('mongoose')
+
 const db_connect = async () => {
     try {
-        const conn = await mongoose.connect(process.env.mode === 'production' ? process.env.db_production_url : process.env.MONGODB_URI)
-        console.log('Mongodb Connected Successfully')
+
+        const dbUrl =
+            process.env.MODE === 'production'
+                ? process.env.DB_PRODUCTION_URL
+                : process.env.MONGODB_URI
+
+        const conn = await mongoose.connect(dbUrl)
+
+        console.log('MongoDB Connected Successfully')
         return conn
+
     } catch (error) {
-        console.log(error)
+        console.log('Database connection error:', error)
         throw error
     }
 }
