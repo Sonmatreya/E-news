@@ -9,6 +9,8 @@ The system simulates a real-world digital newsroom, where news passes through di
 
 📰 Reader Portal
 https://e-news-reader.onrender.com/
+🧑‍💼 News Officer Portal
+https://e-news-main.onrender.com/
 
 # 🚀 Workflow
 <img width="356" height="513" alt="Screenshot 2026-03-10 215856" src="https://github.com/user-attachments/assets/e1e68273-2dee-4c08-877c-79d05dce940f" />
