@@ -13,7 +13,7 @@ dotenv.config()
 app.use(body_parser.json())
 
 // ✅ CORS CONFIG FIX
-const allowedOrigins = ['https://e-news-reader.onrender.com', 'http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = ['https://e-news-reader.onrender.com', 'https://e-news-main.onrender.com','http://localhost:5173', 'http://localhost:3000'];
 
 app.use(cors({
     origin: function (origin, callback) {
