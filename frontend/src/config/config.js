@@ -14,4 +14,4 @@ if (mode === production) {
     base_api_url = local_api_url
 }
 
-export { base_api_url }
+export { base_api_url, base_api_url as base_url }
