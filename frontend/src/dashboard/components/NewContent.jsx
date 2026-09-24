@@ -7,6 +7,7 @@ import { base_url } from '../../config/config'
 import storeContext from '../../context/storeContext'
 import toast from 'react-hot-toast'
 import htmlParser from 'react-html-parser'
+import ExternalNewsImport from './ExternalNewsImport'
 
 const NewContent = () => {
 
@@ -195,6 +196,7 @@ const NewContent = () => {
 
     return (
         <div>
+            {store?.userInfo?.role === 'admin' && <ExternalNewsImport />}
             <div className='px-4 py-3 flex gap-x-3'>
                 <select onChange={type_filter} name="type_filter" className='px-3 py-2 rounded-md outline-0 border border-gray-300 focus:border-red-500 h-10' id="type_filter">
                     <option value="">---select status---</option>
