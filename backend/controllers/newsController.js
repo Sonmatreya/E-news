@@ -372,31 +372,6 @@ class newsController {
         }
     }
 
-    get_dashboard_recent_news = async (req, res) => {
-        const { id, role } = req.userInfo
-        try {
-            if (role === 'admin') {
-                const news = await newsModel.find({}).sort({ createdAt: -1 }).limit(5)
-                return res.status(200).json({ news })
-            } else if (role === 'editor') {
-                // Editors see recent news submitted by writers for review, submitted news, and their reviewed news
-                const news = await newsModel.find({ $or: [{ status: 'submitted' }, { status: 'reviewed_by_writer' }, { status: 'reviewed_by_editor' }] }).sort({ createdAt: -1 }).limit(5)
-                return res.status(200).json({ news })
-            } else if (role === 'writer') {
-                // Writers see their own recent drafts, 'submitted' status news to review, reviewed news, and rework needed news
-                const news = await newsModel.find({ $or: [{ writerId: new ObjectId(id), status: 'draft' }, { status: 'submitted' }, { status: 'reviewed_by_writer' }, { status: 'rework_needed', returnTo: 'writer' }] }).sort({ createdAt: -1 }).limit(5)
-                return res.status(200).json({ news })
-            } else {
-                // Reporters, photographers see their own recent news
-                const news = await newsModel.find({ writerId: new ObjectId(id) }).sort({ createdAt: -1 }).limit(5)
-                return res.status(200).json({ news })
-            }
-        } catch (error) {
-            console.log(error.message)
-            return res.status(500).json({ message: 'Internal server error' })
-        }
-    }
-
     get_writer_stats = async (req, res) => {
         const { id, role } = req.userInfo
         try {
