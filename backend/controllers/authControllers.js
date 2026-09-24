@@ -146,7 +146,8 @@ class authController {
                 email: user.email,
                 category: user.category,
                 role: role,
-                employeeId: employeeId
+                employeeId: employeeId,
+                image: user.image || ''
             }
             const token = await jwt.sign(obj, process.env.JWT_SECRET, {
                 expiresIn: '7d'
@@ -259,7 +260,8 @@ class authController {
                     email: new_user.email,
                     category: new_user.category,
                     role: new_user.role,
-                    employeeId: new_user.employeeId
+                    employeeId: new_user.employeeId,
+                    image: new_user.image || ''
                 }
                 const token = await jwt.sign(obj, process.env.JWT_SECRET, {
                     expiresIn: '7d'
