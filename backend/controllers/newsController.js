@@ -910,7 +910,7 @@ class newsController {
         }
 
         try {
-            const escapedName = cleanName.replace(/[.*+?^$()|[\\]\\\\]/g, '\\$&')
+            const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
             const existingCategory = await categoryModel.findOne({
                 $or: [
                     { name: { $regex: new RegExp('^' + escapedName + '$', 'i') } },
@@ -975,7 +975,7 @@ class newsController {
                 }
 
                 if (cleanName.toLowerCase() !== category.name.toLowerCase()) {
-                    const escapedName = cleanName.replace(/[.*+?^$()|[\\]\\\\]/g, '\\$&')
+                    const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                     const existingCategory = await categoryModel.findOne({
                         _id: { $ne: category_id },
                         $or: [
@@ -998,76 +998,3 @@ class newsController {
                 }
 
                 updateData.name = cleanName
-                updateData.slug = slug
-            }
-
-            if (description !== undefined) {
-                updateData.description = typeof description === 'string' ? description.trim() : ''
-            }
-
-            if (status !== undefined) {
-                updateData.status = status
-            }
-
-            const updatedCategory = await categoryModel.findByIdAndUpdate(
-                category_id,
-                updateData,
-                { new: true, runValidators: true }
-            )
-
-            return res.status(200).json({
-                message: 'Category updated successfully',
-                category: updatedCategory
-            })
-        } catch (error) {
-            console.log(error.message)
-            return res.status(500).json({ message: 'Internal server error' })
-        }
-    }
-
-    delete_category = async (req, res) => {
-        const { category_id } = req.params
-
-        try {
-            const category = await categoryModel.findById(category_id)
-            if (!category) {
-                return res.status(404).json({ message: 'Category not found' })
-            }
-
-            const newsCount = await newsModel.countDocuments({ category: category.name })
-
-            if (newsCount > 0) {
-                return res.status(400).json({
-                    message: 'Cannot delete category that has associated news'
-                })
-            }
-
-            await categoryModel.findByIdAndDelete(category_id)
-            return res.status(200).json({ message: 'Category deleted successfully' })
-        } catch (error) {
-            console.log(error.message)
-            return res.status(500).json({ message: 'Internal server error' })
-        }
-    }
-
-    get_active_categories = async (req, res) => {
-        try {
-            const categories = await categoryModel.find({ status: 'active' }).sort({ name: 1 })
-            return res.status(200).json({ categories })
-        } catch (error) {
-            console.log(error.message)
-            return res.status(500).json({ message: 'Internal server error' })
-        }
-    }
-
-    clear_sample_data = async (req, res) => {
-        try {
-            await newsModel.deleteMany({})
-            return res.status(200).json({ message: 'All sample news data cleared' })
-        } catch (error) {
-            return res.status(500).json({ message: 'Error clearing data' })
-        }
-    }
-}
-
-module.exports = new newsController()
