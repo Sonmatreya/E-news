@@ -14,31 +14,41 @@ export const dynamic = 'force-dynamic';
 
 const Home = async () => {
   let news = {};
+  let categoryNames = [];
 
   try {
-    const news_data = await fetch(`${base_api_url}/api/all/news`, {
-      next: {
-        revalidate: 5,
-      },
-    });
+    const [newsResponse, categoryResponse] = await Promise.all([
+      fetch(base_api_url + "/api/all/news", {
+        next: {
+          revalidate: 5,
+        },
+      }),
+      fetch(base_api_url + "/api/categories/active", {
+        next: {
+          revalidate: 5,
+        },
+      }),
+    ]);
 
-    const data = await news_data?.json();
+    const data = await newsResponse.json();
+    const categoryData = await categoryResponse.json();
+
     news = data.news || {};
+    categoryNames = (categoryData.categories || [])
+      .map((category) => category.name)
+      .filter(Boolean);
   } catch (error) {
-    console.error('Failed to fetch news:', error);
+    console.error('Failed to fetch homepage data:', error);
   }
 
-  // Initialize default empty arrays for categories to prevent undefined errors
-  const defaultCategories = {
-    Education: [],
-    Technology: [],
-    Travel: [],
-    Sports: [],
-    Health: [],
-    Politics: [],
-  };
-  news = { ...defaultCategories, ...news };
-  
+  // Keep the homepage layout working even if the category API is temporarily unavailable.
+  if (categoryNames.length === 0) {
+    categoryNames = Object.keys(news);
+  }
+
+  const getCategory = (index) => categoryNames[index] || '';
+  const getCategoryNews = (index) => news[getCategory(index)] || [];
+
   return (
     <div>
       <main>
@@ -47,50 +57,53 @@ const Home = async () => {
           <div className="px-4 md:px-8 py-8">
             <div className="flex flex-wrap">
               <div className="w-full lg:w-6/12">
-                <LatestNews news={news["Education"]} />
+                <LatestNews news={getCategoryNews(0)} />
               </div>
               <div className="w-full lg:w-6/12 mt-5 lg:mt-0">
                 <div className="flex w-full flex-col gap-y-[14px] pl-0 lg:pl-2">
-                  <Title title="Technology" />
+                  <Title title={getCategory(1)} />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
-                    {news["Technology"].map((item, i) => {
-                      if (i < 4) {
-                        return <SimpleNewsCard item={item} key={i} />;
-                      }
-                    })}
+                    {getCategoryNews(1).map((item, i) => (
+                      i < 4 ? <SimpleNewsCard item={item} key={i} /> : null
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
+
             <PopularNews type="Popular news" />
+
             {/* first section */}
             <div className="w-full">
               <div className="flex flex-wrap">
                 <div className="w-full lg:w-8/12">
                   <DetailsNewsRow
-                    news={news["Sports"]}
-                    category="Sports"
+                    news={getCategoryNews(2)}
+                    category={getCategory(2)}
                     type="details-news"
                   />
-                  <DetailsNews news={news["Health"]}
-                    category="Health"  />
+                  <DetailsNews
+                    news={getCategoryNews(3)}
+                    category={getCategory(3)}
+                  />
                 </div>
                 <div className="w-full lg:w-4/12">
                   <DetailsNewsCol
-                    news={news["Education"]}
-                    category="Education"
+                    news={getCategoryNews(0)}
+                    category={getCategory(0)}
                   />
                 </div>
               </div>
             </div>
+
             {/* 2nd section */}
             <div className="w-full">
               <div className="flex flex-wrap">
                 <div className="w-full lg:w-4/12">
                   <div className="pr-2">
                     <DetailsNewsCol
-                      news={news["Technology"]}
-                      category="Technology"
+                      news={getCategoryNews(1)}
+                      category={getCategory(1)}
                       type="details-news-col"
                     />
                   </div>
@@ -98,28 +111,28 @@ const Home = async () => {
                 <div className="w-full lg:w-8/12">
                   <div className="pl-2">
                     <DetailsNewsRow
-                      news={news["Travel"]}
-                      category="Travel"
+                      news={getCategoryNews(4)}
+                      category={getCategory(4)}
                       type="details-news"
                     />
                     <DetailsNewsRow
-                      news={news["Politics"]}
-                      category="Politics"
+                      news={getCategoryNews(5)}
+                      category={getCategory(5)}
                       type="details-news"
                     />
-                      
                   </div>
                 </div>
               </div>
             </div>
+
             {/* 3rd section */}
             <div className="w-full">
               <div className="flex flex-wrap">
                 <div className="w-full lg:w-8/12">
                   <div>
                     <DetailsNewsRow
-                      news={news["Health"]}
-                      category="Health"
+                      news={getCategoryNews(3)}
+                      category={getCategory(3)}
                       type="details-news"
                     />
                   </div>
@@ -128,7 +141,7 @@ const Home = async () => {
                   <div className="pl-2">
                     <Title title="Recent news" />
                     <div className="grid grid-cols-1 gap-y-[14px] mt-4">
-                      {news['Sports'].map((item, i) => (
+                      {getCategoryNews(2).map((item, i) => (
                         <NewsCard item={item} key={i} />
                       ))}
                     </div>
@@ -143,4 +156,5 @@ const Home = async () => {
     </div>
   );
 };
+
 export default Home;
