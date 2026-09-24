@@ -182,6 +182,15 @@ class newsController {
             return res.status(404).json({ message: 'News not found' })
         }
 
+        // Admins and editors can manage workflow status for any news.
+        // Writers, reporters, and photographers can change status only for their own news.
+        const canManageAnyNews = role === 'admin' || role === 'editor'
+        const isOwner = news.writerId && news.writerId.toString() === req.userInfo.id
+
+        if (!canManageAnyNews && !isOwner) {
+            return res.status(403).json({ message: 'You do not have permission to change this news status' })
+        }
+
         // Workflow logic with verification
         if (role === 'admin') {
             // Admin can publish, reject, or deactivate any news
