@@ -47,6 +47,11 @@ class authController {
         const { email, password } = req.body
         const clientIP = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown'
 
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is not configured')
+            return res.status(500).json({ message: 'Authentication service is not configured' })
+        }
+
         // Check for brute force protection
         const attemptCheck = checkLoginAttempts(clientIP)
         if (attemptCheck.blocked) {
@@ -55,15 +60,17 @@ class authController {
             })
         }
 
-        if (!email) {
-            return res.status(404).json({ message: 'Please provide your email' })
+        if (!email || !email.trim()) {
+            return res.status(400).json({ message: 'Please provide your email' })
         }
         if (!password) {
-            return res.status(404).json({ message: 'Please provide your password' })
+            return res.status(400).json({ message: 'Please provide your password' })
         }
 
+        const normalizedEmail = email.trim().toLowerCase()
+
         try {
-            const user = await authModel.findOne({ email }).select('+password')
+            const user = await authModel.findOne({ email: normalizedEmail }).select('+password')
             if (user) {
                 const match = await bcrypt.compare(password, user.password)
                 if (match) {
@@ -150,34 +157,45 @@ class authController {
     signup = async (req, res) => {
         const { firstName, lastName, email, password, category } = req.body
 
-        if (!firstName) {
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is not configured')
+            return res.status(500).json({ message: 'Authentication service is not configured' })
+        }
+
+        if (!firstName || !firstName.trim()) {
             return res.status(404).json({ message: 'Please provide your first name' })
         }
-        if (!lastName) {
-            return res.status(404).json({ message: 'Please provide your last name' })
+        if (!lastName || !lastName.trim()) {
+            return res.status(400).json({ message: 'Please provide your last name' })
         }
-        if (!email) {
-            return res.status(404).json({ message: 'Please provide your email' })
+        if (!email || !email.trim()) {
+            return res.status(400).json({ message: 'Please provide your email' })
         }
         if (!password) {
-            return res.status(404).json({ message: 'Please provide your password' })
+            return res.status(400).json({ message: 'Please provide your password' })
         }
-        if (!category) {
-            return res.status(404).json({ message: 'Please provide your category' })
+        if (!category || !category.trim()) {
+            return res.status(400).json({ message: 'Please provide your category' })
+        }
+
+        if (password.trim().length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters' })
         }
 
         // Admin accounts must be created through the protected admin workflow.
         // Never trust a public signup request to create an administrator.
-        if (category.trim() === 'Admin') {
+        if (category.trim().toLowerCase() === 'admin') {
             return res.status(403).json({ message: 'Admin accounts cannot be created through public signup' })
         }
 
-        if (email && !email.match(/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/)) {
+        const normalizedSignupEmail = email.trim().toLowerCase()
+
+        if (!normalizedSignupEmail.match(/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/)) {
             return res.status(404).json({ message: 'Please provide a valid email' })
         }
 
         try {
-            const user = await authModel.findOne({ email: email.trim() })
+            const user = await authModel.findOne({ email: normalizedSignupEmail })
             if (user) {
                 return res.status(404).json({ message: 'User already exists' })
             } else {
@@ -225,7 +243,7 @@ class authController {
 
                 const new_user = await authModel.create({
                     name: `${firstName.trim()} ${lastName.trim()}`,
-                    email: email.trim(),
+                    email: normalizedSignupEmail,
                     password: await bcrypt.hash(password.trim(), 10),
                     category: category.trim(),
                     role: role,
