@@ -32,10 +32,15 @@ class middleware {
             // Always verify the account against the database.
             // This prevents a valid old JWT from working after the account
             // is deleted or its role is changed.
-            const user = await authModel.findById(tokenInfo.id).select('name email category role employeeId image')
+            const user = await authModel.findById(tokenInfo.id).select('name email category role employeeId image passwordChangedAt')
 
             if (!user) {
                 return res.status(401).json({ message: 'Unauthorized' })
+            }
+
+            // Invalidate tokens that were issued before the user's password was changed.
+            if (user.passwordChangedAt && (!tokenInfo.iat || tokenInfo.iat * 1000 < user.passwordChangedAt.getTime())) {
+                return res.status(401).json({ message: 'Session expired. Please log in again.' })
             }
 
             req.userInfo = {
