@@ -781,8 +781,12 @@ class newsController {
                 return res.status(404).json({ message: 'News not found' })
             }
 
-            // Check if user is admin or the writer of the news
-            if (role !== 'admin' && news.writerId.toString() !== id) {
+            // Admins and editors can delete any news.
+            // Writers, reporters, and photographers can delete only their own news.
+            const canDeleteAnyNews = role === 'admin' || role === 'editor'
+            const isOwner = news.writerId && news.writerId.toString() === id
+
+            if (!canDeleteAnyNews && !isOwner) {
                 return res.status(403).json({ message: 'You do not have permission to delete this news' })
             }
 
