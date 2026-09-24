@@ -19,7 +19,7 @@ const Sidebar = () => {
     const { store, dispatch } = useContext(storeContext)
 
     const logout = () => {
-        localStorage.removeItem('mewsToken')
+        localStorage.removeItem('newsToken')
         dispatch({ type: 'logout', payload: '' })
         toast.success('Logout successfully'.replace(/\b\w/g, l => l.toUpperCase()))
         navigate('/login')
