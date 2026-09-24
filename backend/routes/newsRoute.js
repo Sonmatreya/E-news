@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const middleware = require('../middlewares/middleware')
 const newsController = require('../controllers/newsController')
+const externalNewsController = require('../controllers/externalNewsController')
 
 
 // dashboard
@@ -20,6 +21,9 @@ router.get('/api/admin/stats', middleware.auth, middleware.role, newsController.
 router.get('/api/editor/stats', middleware.auth, middleware.editorOrAdmin, newsController.get_writer_stats)
 router.get('/api/dashboard/recent-news', middleware.auth, newsController.get_dashboard_recent_news)
 
+
+// external news
+router.get('/api/external-news', externalNewsController.fetchGNews)
 
 // website
 
