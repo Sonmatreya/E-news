@@ -13,7 +13,7 @@ const Header = () => {
           <div className='flex gap-x-2'>
             <div className='flex flex-col justify-center items-end'>
               <span>{store.userInfo?.name}</span>
-              <span>{store.userInfo?.role === 'reporter' ? 'Reporter/Photographer' : store.userInfo?.role?.charAt(0).toUpperCase() + store.userInfo?.role?.slice(1)}</span>
+              <span>{store.userInfo?.role === 'reporter' ? 'Reporter' : store.userInfo?.role === 'photographer' ? 'Photographer' : store.userInfo?.role?.charAt(0).toUpperCase() + store.userInfo?.role?.slice(1)}</span>
             </div>
             <img className='w-10 h-10 rounded-full' src={store.userInfo?.image || profile} alt="" />
           </div>
