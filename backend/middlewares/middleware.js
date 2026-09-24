@@ -45,7 +45,8 @@ class middleware {
                 email: user.email,
                 category: user.category,
                 role: user.role,
-                employeeId: user.employeeId
+                employeeId: user.employeeId,
+                image: user.image || ''
             }
 
             next()
