@@ -104,6 +104,12 @@ class authController {
                             case 'Writer':
                                 role = 'writer';
                                 break;
+                            case 'Reporter':
+                                role = 'reporter';
+                                break;
+                            case 'Photographer':
+                                role = 'photographer';
+                                break;
                             case 'Reporter/Photographer':
                                 role = 'reporter';
                                 break;
@@ -201,6 +207,12 @@ class authController {
                         break;
                     case 'Writer':
                         role = 'writer';
+                        break;
+                    case 'Reporter':
+                        role = 'reporter';
+                        break;
+                    case 'Photographer':
+                        role = 'photographer';
                         break;
                     case 'Reporter/Photographer':
                         role = 'reporter';
