@@ -252,12 +252,12 @@ class newsController {
         }
     }
 
-    get_images = async (req, res) => {
+    get_gallery_images = async (req, res) => {
         const { id } = req.userInfo
 
         try {
             const images = await galleryModel.find({ writerId: new ObjectId(id) }).sort({ createdAt: -1 })
-            return res.status(201).json({ images })
+            return res.status(200).json({ images })
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' })
         }
