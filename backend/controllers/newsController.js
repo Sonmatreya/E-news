@@ -497,7 +497,9 @@ class newsController {
         const { id, role } = req.userInfo
         try {
             if (role === 'admin') {
-                const totalNews = await newsModel.countDocuments({})                const draftNews = await newsModel.countDocuments({ status: 'draft' })                const submittedNews = await newsModel.countDocuments({ status: 'submitted' })
+                const totalNews = await newsModel.countDocuments({})
+                const draftNews = await newsModel.countDocuments({ status: 'draft' })
+                const submittedNews = await newsModel.countDocuments({ status: 'submitted' })
                 const reviewedByWriterNews = await newsModel.countDocuments({ status: 'reviewed_by_writer' })
                 const reviewedByEditorNews = await newsModel.countDocuments({ status: 'reviewed_by_editor' })
                 const publishedNews = await newsModel.countDocuments({ status: 'published' })
