@@ -7,6 +7,16 @@ const categoryModel = require('../models/categoryModel')
 const { mongo: { ObjectId } } = require('mongoose')
 const moment = require('moment')
 
+const createSlug = (title) => {
+    return title
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+}
+
 class newsController {
     add_news = async (req, res) => {
         console.log('Starting add_news')
@@ -33,10 +43,20 @@ class newsController {
             const { url } = await cloudinary.uploader.upload(files.image[0].filepath, { folder: 'news_images' })
             const { title, description, category: selectedCategory } = fields
             const status = 'draft'
+            const cleanTitle = title[0].trim()
+            const baseSlug = createSlug(cleanTitle)
+            let slug = baseSlug
+            let slugNumber = 2
+
+            while (await newsModel.exists({ slug })) {
+                slug = baseSlug + '-' + slugNumber
+                slugNumber++
+            }
+
             const news = await newsModel.create({
                 writerId: id,
-                title: title[0].trim(),
-                slug: title[0].trim().split(' ').join('-'),
+                title: cleanTitle,
+                slug,
                 category: selectedCategory ? selectedCategory[0] : category,
                 description: description[0].replace(/\n/g, '<br>'),
                 date: moment().format('LL'),
@@ -90,6 +110,15 @@ class newsController {
             const [fields, files] = await form.parse(req)
             const { title, description } = fields
             let url = fields.old_image[0]
+            const cleanTitle = title[0].trim()
+            const baseSlug = createSlug(cleanTitle)
+            let slug = baseSlug
+            let slugNumber = 2
+
+            while (await newsModel.exists({ slug, _id: { $ne: news_id } })) {
+                slug = baseSlug + '-' + slugNumber
+                slugNumber++
+            }
 
             if (Object.keys(files).length > 0) {
                 const spliteImage = url.split('/')
@@ -100,8 +129,8 @@ class newsController {
             }
 
             const news = await newsModel.findByIdAndUpdate(news_id, {
-                title: title[0].trim(),
-                slug: title[0].trim().split(' ').join('-'),
+                title: cleanTitle,
+                slug,
                 description: description[0].replace(/\n/g, '<br>'),
                 image: url,
                 date: moment().format('LL'),
