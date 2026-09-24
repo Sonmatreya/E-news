@@ -157,6 +157,13 @@ class authController {
         if (!category) {
             return res.status(404).json({ message: 'Please provide your category' })
         }
+
+        // Admin accounts must be created through the protected admin workflow.
+        // Never trust a public signup request to create an administrator.
+        if (category.trim() === 'Admin') {
+            return res.status(403).json({ message: 'Admin accounts cannot be created through public signup' })
+        }
+
         if (email && !email.match(/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/)) {
             return res.status(404).json({ message: 'Please provide a valid email' })
         }
