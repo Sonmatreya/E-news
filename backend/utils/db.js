@@ -5,7 +5,7 @@ const db_connect = async () => {
 
         const dbUrl =
             process.env.MODE === 'production'
-                ? process.env.DB_PRODUCTION_URL
+                ? (process.env.DB_PRODUCTION_URL || process.env.MONGODB_URI)
                 : process.env.MONGODB_URI
 
         const conn = await mongoose.connect(dbUrl)
