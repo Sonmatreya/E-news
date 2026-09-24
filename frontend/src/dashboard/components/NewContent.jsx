@@ -23,7 +23,7 @@ const NewContent = () => {
     const get_news = async () => {
 
         try {
-            const { data } = await axios.get(`${base_url}/api/news`, {
+            const { data } = await axios.get(`${base_url}/api/dashboard/news`, {
                 headers: {
                     'Authorization': `Bearer ${store.token}`
                 }
@@ -83,7 +83,7 @@ const NewContent = () => {
     const delete_news = async (news_id) => {
         if (window.confirm('Are you sure you want to delete this news?')) {
             try {
-                const { data } = await axios.delete(`${base_url}/api/news/${news_id}`, {
+                const { data } = await axios.delete(`${base_url}/api/dashboard/news/${news_id}`, {
                     headers: {
                         'Authorization': `Bearer ${store.token}`
                     }
@@ -142,7 +142,7 @@ const NewContent = () => {
 
     const view_news = async (id) => {
         try {
-            const { data } = await axios.get(`${base_url}/api/news/${id}`, {
+            const { data } = await axios.get(`${base_url}/api/dashboard/news/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${store.token}`
                 }
