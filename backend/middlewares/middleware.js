@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const authModel = require('../models/authModel')
 
 class middleware {
 
@@ -22,10 +23,34 @@ class middleware {
         }
 
         try {
-            const userInfo = await jwt.verify(token, process.env.JWT_SECRET)
-            req.userInfo = userInfo
+            const tokenInfo = await jwt.verify(token, process.env.JWT_SECRET)
+
+            if (!tokenInfo.id) {
+                return res.status(401).json({ message: 'Unauthorized' })
+            }
+
+            // Always verify the account against the database.
+            // This prevents a valid old JWT from working after the account
+            // is deleted or its role is changed.
+            const user = await authModel.findById(tokenInfo.id).select('name email category role employeeId image')
+
+            if (!user) {
+                return res.status(401).json({ message: 'Unauthorized' })
+            }
+
+            req.userInfo = {
+                ...tokenInfo,
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                category: user.category,
+                role: user.role,
+                employeeId: user.employeeId
+            }
+
             next()
         } catch (error) {
+            console.log('Authentication error:', error.message)
             return res.status(401).json({ message: 'Unauthorized' })
         }
     }
