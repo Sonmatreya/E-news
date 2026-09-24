@@ -497,8 +497,7 @@ class newsController {
         const { id, role } = req.userInfo
         try {
             if (role === 'admin') {
-                const totalNews = await newsModel.countDocuments({})                const draftNews = await newsModel.countDocuments({ status: 'draft' })
-                const submittedNews = await newsModel.countDocuments({ status: 'submitted' })
+                const totalNews = await newsModel.countDocuments({})                const draftNews = await newsModel.countDocuments({ status: 'draft' })                const submittedNews = await newsModel.countDocuments({ status: 'submitted' })
                 const reviewedByWriterNews = await newsModel.countDocuments({ status: 'reviewed_by_writer' })
                 const reviewedByEditorNews = await newsModel.countDocuments({ status: 'reviewed_by_editor' })
                 const publishedNews = await newsModel.countDocuments({ status: 'published' })
@@ -897,8 +896,7 @@ class newsController {
     add_category = async (req, res) => {
         const { name, description } = req.body
         if (!name || !name.trim()) {
-            return res.status(400).json({ message: 'Category name is required' })
-        }
+            return res.status(400).json({ message: 'Category name is required' })        }
 
         const cleanName = name.trim()
         const slug = createSlug(cleanName)
@@ -908,7 +906,7 @@ class newsController {
         }
 
         try {
-            const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\cleanName.replace(/[.*+?^$()|[\\]\\\\]/g, '\\$&')')
+            const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
             const existingCategory = await categoryModel.findOne({
                 $or: [
                     { name: { $regex: new RegExp('^' + escapedName + '$', 'i') } },
@@ -973,7 +971,7 @@ class newsController {
                 }
 
                 if (cleanName.toLowerCase() !== category.name.toLowerCase()) {
-                    const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\cleanName.replace(/[.*+?^$()|[\\]\\\\]/g, '\\$&')')
+            const escapedName = cleanName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                     const existingCategory = await categoryModel.findOne({
                         _id: { $ne: category_id },
                         $or: [
