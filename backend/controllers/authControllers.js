@@ -293,49 +293,83 @@ class authController {
             return res.status(403).json({ message: 'Admin accounts cannot be created from this endpoint' })
         }
 
-        if (email && !email.match(/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/)) {
-            return res.status(404).json({ message: 'please provide valide email' })
-        }
-        try {
-            const writer = await authModel.findOne({ email: email.trim().toLowerCase() })
-            if (writer) {
-                return res.status(404).json({ message: 'User alreasy exit' })
-            } else {
-                let role;
-                switch (category.trim()) {
-                    case 'Admin':
-                        role = 'admin';
-                        break;
-                    case 'Editor':
-                        role = 'editor';
-                        break;
-                    case 'Writer':
-                        role = 'writer';
-                        break;
-                    case 'Reporter':
-                        role = 'reporter';
-                        break;
-                    case 'Photographer':
-                        role = 'photographer';
-                        break;
-                    case 'Reporter/Photographer':
-                        role = 'reporter';
-                        break;
-                    default:
-                        role = 'reporter'; // fallback to reporter
-                }
+        const normalizedEmail = email.trim().toLowerCase()
 
-                const new_writer = await authModel.create({
-                    name: name.trim(),
-                    email: email.trim(),
-                    password: await bcrypt.hash(password.trim(), 10),
-                    category: category.trim(),
-                    role: role
-                })
-                return res.status(201).json({ message: 'writer add success', writer: new_writer })
+        if (!normalizedEmail.match(/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/)) {
+            return res.status(400).json({ message: 'Please provide a valid email' })
+        }
+
+        if (password.trim().length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters' })
+        }
+
+        try {
+            const writer = await authModel.findOne({ email: normalizedEmail })
+            if (writer) {
+                return res.status(409).json({ message: 'User already exists' })
             }
+
+            const generateEmployeeId = () => {
+                const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                const prefix = letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)]
+                const randomNum = Math.floor(10000000 + Math.random() * 90000000)
+                return `${prefix}${randomNum}`
+            }
+
+            let employeeId
+            let isUnique = false
+
+            while (!isUnique) {
+                employeeId = generateEmployeeId()
+                const existingUser = await authModel.findOne({ employeeId })
+                if (!existingUser) {
+                    isUnique = true
+                }
+            }
+
+            let role
+            switch (category.trim()) {
+                case 'Admin':
+                    role = 'admin'
+                    break
+                case 'Editor':
+                    role = 'editor'
+                    break
+                case 'Writer':
+                    role = 'writer'
+                    break
+                case 'Reporter':
+                    role = 'reporter'
+                    break
+                case 'Photographer':
+                    role = 'photographer'
+                    break
+                case 'Reporter/Photographer':
+                    role = 'reporter'
+                    break
+                default:
+                    role = 'reporter'
+            }
+
+            const new_writer = await authModel.create({
+                name: name.trim(),
+                email: normalizedEmail,
+                password: await bcrypt.hash(password.trim(), 10),
+                category: category.trim(),
+                role: role,
+                employeeId: employeeId
+            })
+
+            const writerResponse = new_writer.toObject()
+            delete writerResponse.password
+
+            return res.status(201).json({
+                message: 'Staff member added successfully',
+                writer: writerResponse
+            })
         } catch (error) {
-            return res.status(500).json({ message: 'internal server error' })
+            console.log(error)
+            return res.status(500).json({ message: 'Internal server error' })
         }
     }
 
