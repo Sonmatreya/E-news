@@ -8,6 +8,7 @@ import PopularNews from "@/components/news/PopularNews";
 import SimpleNewsCard from "@/components/news/items/SimpleNewsCard";
 import NewsCard from "@/components/news/items/NewsCard";
 import Footer from "@/components/Footer";
+import ExternalNews from "@/components/ExternalNews";
 import { base_api_url } from "@/config/config";
 
 export const dynamic = 'force-dynamic';
@@ -72,6 +73,8 @@ const Home = async () => {
             </div>
 
             <PopularNews type="Popular news" />
+
+            <ExternalNews category="general" title="Latest External News" />
 
             {/* first section */}
             <div className="w-full">
