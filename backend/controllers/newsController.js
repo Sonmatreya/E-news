@@ -65,8 +65,34 @@ class newsController {
                 return res.status(400).json({ message: 'Image is required' })
             }
 
-            const { url } = await cloudinary.uploader.upload(files.image[0].filepath, { folder: 'news_images' })
             const { title, description, category: selectedCategory } = fields
+
+            if (!title || !title[0] || !title[0].trim()) {
+                return res.status(400).json({ message: 'Title is required' })
+            }
+
+            if (!description || !description[0] || !description[0].trim()) {
+                return res.status(400).json({ message: 'Description is required' })
+            }
+
+            const newsCategory = selectedCategory && selectedCategory[0]
+                ? selectedCategory[0].trim()
+                : (category ? category.trim() : '')
+
+            if (!newsCategory) {
+                return res.status(400).json({ message: 'Category is required' })
+            }
+
+            const activeCategory = await categoryModel.findOne({
+                name: newsCategory,
+                status: 'active'
+            })
+
+            if (!activeCategory) {
+                return res.status(400).json({ message: 'Selected category is not active or does not exist' })
+            }
+
+            const { url } = await cloudinary.uploader.upload(files.image[0].filepath, { folder: 'news_images' })
             const status = 'draft'
             const cleanTitle = title[0].trim()
             const baseSlug = createSlug(cleanTitle)
@@ -82,7 +108,7 @@ class newsController {
                 writerId: id,
                 title: cleanTitle,
                 slug,
-                category: selectedCategory ? selectedCategory[0] : category,
+                category: newsCategory,
                 description: description[0].replace(/\n/g, '<br>'),
                 date: moment().format('LL'),
                 time: moment().format('LTS'),
