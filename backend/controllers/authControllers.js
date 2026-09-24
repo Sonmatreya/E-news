@@ -518,9 +518,12 @@ class authController {
             }
 
             const hashedNewPassword = await bcrypt.hash(new_password.trim(), 10)
-            await authModel.findByIdAndUpdate(id, { password: hashedNewPassword })
+            await authModel.findByIdAndUpdate(id, {
+                password: hashedNewPassword,
+                passwordChangedAt: new Date()
+            })
 
-            return res.status(200).json({ message: 'Password changed successfully' })
+            return res.status(200).json({ message: 'Password changed successfully. Please log in again.' })
         } catch (error) {
             console.log(error)
             return res.status(500).json({ message: 'Internal server error' })
