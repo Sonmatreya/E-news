@@ -98,7 +98,8 @@ const Signup = () => {
                 <option value="">Select Role</option>
                 <option value="Editor">Editor</option>
                 <option value="Writer">Writer</option>
-                <option value="Reporter/Photographer">Reporter/Photographer</option>
+                <option value="Reporter">Reporter</option>
+                <option value="Photographer">Photographer</option>
               </select>
             </div>
             <div className='flex flex-col gap-y-2'>
