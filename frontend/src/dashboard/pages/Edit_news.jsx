@@ -108,7 +108,7 @@ const Edit_news = () => {
 
     const get_news = async () => {
         try {
-            const { data } = await axios.get(`${base_url}/api/news/${news_id}`, {
+            const { data } = await axios.get(`${base_url}/api/dashboard/news/${news_id}`, {
                 headers: {
                     "Authorization": `Bearer ${store.token}`
                 }
