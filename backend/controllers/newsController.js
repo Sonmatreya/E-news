@@ -55,6 +55,28 @@ class newsController {
     update_news = async (req, res) => {
 
         const { news_id } = req.params
+        const { id, role } = req.userInfo
+
+        try {
+            const news = await newsModel.findById(news_id)
+
+            if (!news) {
+                return res.status(404).json({ message: 'News not found' })
+            }
+
+            // Admins and editors can edit any news.
+            // Writers, reporters, and photographers can edit only their own news.
+            const canEditAnyNews = role === 'admin' || role === 'editor'
+            const isOwner = news.writerId && news.writerId.toString() === id
+
+            if (!canEditAnyNews && !isOwner) {
+                return res.status(403).json({ message: 'You do not have permission to edit this news' })
+            }
+        } catch (error) {
+            console.log('Error checking news update permission:', error.message)
+            return res.status(500).json({ message: 'Internal server error' })
+        }
+
         const form = formidable({})
 
         cloudinary.config({
