@@ -1,6 +1,8 @@
 const authModel = require('../models/authModel')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const { formidable } = require('formidable')
+const cloudinary = require('cloudinary').v2
 
 // In-memory store for login attempts (in production, use Redis or DB)
 const loginAttempts = new Map()
@@ -361,6 +363,62 @@ class authController {
             const staff = await authModel.find({}).sort({ createdAt: -1 }).select('-password')
             return res.status(200).json({ staff })
         } catch (error) {
+            return res.status(500).json({ message: 'Internal server error' })
+        }
+    }
+
+
+    update_profile_image = async (req, res) => {
+        const { id } = req.userInfo
+
+        const form = formidable({
+            maxFileSize: 5 * 1024 * 1024
+        })
+
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET,
+            secure: true
+        })
+
+        try {
+            const [fields, files] = await form.parse(req)
+
+            if (!files.image || files.image.length === 0) {
+                return res.status(400).json({ message: 'Please select an image' })
+            }
+
+            const imageFile = files.image[0]
+
+            if (!imageFile.mimetype || !imageFile.mimetype.startsWith('image/')) {
+                return res.status(400).json({ message: 'Only image files are allowed' })
+            }
+
+            const user = await authModel.findById(id)
+
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' })
+            }
+
+            const upload = await cloudinary.uploader.upload(imageFile.filepath, {
+                folder: 'profile_images'
+            })
+
+            user.image = upload.secure_url
+            await user.save()
+
+            return res.status(200).json({
+                message: 'Profile image updated successfully',
+                image: user.image
+            })
+        } catch (error) {
+            console.log('Error updating profile image:', error.message)
+
+            if (error.code === 1009) {
+                return res.status(400).json({ message: 'Image must be 5MB or smaller' })
+            }
+
             return res.status(500).json({ message: 'Internal server error' })
         }
     }
