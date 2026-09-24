@@ -24,6 +24,7 @@ router.get('/api/dashboard/recent-news', middleware.auth, newsController.get_das
 
 // external news
 router.get('/api/external-news', externalNewsController.fetchGNews)
+router.post('/api/external-news/import', middleware.auth, middleware.role, externalNewsController.importGNews)
 
 // website
 
