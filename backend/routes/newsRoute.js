@@ -41,7 +41,7 @@ router.get('/api/category/all', newsController.get_categories)
 router.get('/api/category/news/:category', newsController.get_category_news)
 router.get('/api/search/news', newsController.news_search)
 
-router.delete('/api/clear-sample-data', newsController.clear_sample_data)
+router.delete('/api/clear-sample-data', middleware.auth, middleware.role, newsController.clear_sample_data)
 
 
 
