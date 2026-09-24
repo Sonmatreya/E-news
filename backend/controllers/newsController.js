@@ -139,8 +139,9 @@ class newsController {
             // Writers, reporters, and photographers can edit only their own news.
             const canEditAnyNews = role === 'admin' || role === 'editor'
             const isOwner = news.writerId && news.writerId.toString() === id
+            const isAssignedWriter = news.assignedTo && news.assignedTo.toString() === id
 
-            if (!canEditAnyNews && !isOwner) {
+            if (!canEditAnyNews && !isOwner && !isAssignedWriter) {
                 return res.status(403).json({ message: 'You do not have permission to edit this news' })
             }
         } catch (error) {
