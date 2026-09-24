@@ -71,87 +71,91 @@ class authController {
 
         try {
             const user = await authModel.findOne({ email: normalizedEmail }).select('+password')
-            if (user) {
-                const match = await bcrypt.compare(password, user.password)
-                if (match) {
-                    // Successful login: reset attempts
-                    recordSuccessfulLogin(clientIP)
 
-                    // Generate employeeId if not present (for existing users)
-                    let employeeId = user.employeeId
-                    if (!employeeId) {
-                        const generateEmployeeId = () => {
-                            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                            const prefix = letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)];
-                            const randomNum = Math.floor(10000000 + Math.random() * 90000000); // 8-digit random number
-                            return `${prefix}${randomNum}`;
-                        };
-
-                        let isUnique = false;
-                        while (!isUnique) {
-                            employeeId = generateEmployeeId();
-                            const existingUser = await authModel.findOne({ employeeId });
-                            if (!existingUser) {
-                                isUnique = true;
-                            }
-                        }
-
-                        // Update user with new employeeId
-                        await authModel.findByIdAndUpdate(user._id, { employeeId });
-                    }
-
-                    // Set role if not present (for existing users)
-                    let role = user.role
-                    if (!role) {
-                        switch (user.category) {
-                            case 'Admin':
-                                role = 'admin';
-                                break;
-                            case 'Editor':
-                                role = 'editor';
-                                break;
-                            case 'Writer':
-                                role = 'writer';
-                                break;
-                            case 'Reporter':
-                                role = 'reporter';
-                                break;
-                            case 'Photographer':
-                                role = 'photographer';
-                                break;
-                            case 'Reporter/Photographer':
-                                role = 'reporter';
-                                break;
-                            default:
-                                role = 'reporter';
-                        }
-                        await authModel.findByIdAndUpdate(user._id, { role });
-                    }
-
-                    const obj = {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        category: user.category,
-                        role: role,
-                        employeeId: employeeId
-                    }
-                    const token = await jwt.sign(obj, process.env.JWT_SECRET, {
-                        expiresIn: '7d'
-                    })
-                    return res.status(200).json({ message: 'login success', token })
-                } else {
-                    // Failed login: record attempt
-                    recordFailedAttempt(clientIP)
-                    return res.status(404).json({ message: 'invalid password' })
-                }
-            } else {
-                return res.status(404).json({ message: 'user not found' })
+            if (!user) {
+                // Record unknown-email attempts too, so brute-force protection cannot
+                // be bypassed by repeatedly trying emails that do not exist.
+                recordFailedAttempt(clientIP)
+                return res.status(401).json({ message: 'Invalid email or password' })
             }
+
+            const match = await bcrypt.compare(password, user.password)
+
+            if (!match) {
+                recordFailedAttempt(clientIP)
+                return res.status(401).json({ message: 'Invalid email or password' })
+            }
+
+            // Successful login: reset attempts
+            recordSuccessfulLogin(clientIP)
+
+            // Generate employeeId if not present (for existing users)
+            let employeeId = user.employeeId
+            if (!employeeId) {
+                const generateEmployeeId = () => {
+                    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    const prefix = letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)];
+                    const randomNum = Math.floor(10000000 + Math.random() * 90000000); // 8-digit random number
+                    return `${prefix}${randomNum}`;
+                };
+
+                let isUnique = false;
+                while (!isUnique) {
+                    employeeId = generateEmployeeId();
+                    const existingUser = await authModel.findOne({ employeeId });
+                    if (!existingUser) {
+                        isUnique = true;
+                    }
+                }
+
+                // Update user with new employeeId
+                await authModel.findByIdAndUpdate(user._id, { employeeId });
+            }
+
+            // Set role if not present (for existing users)
+            let role = user.role
+            if (!role) {
+                switch (user.category) {
+                    case 'Admin':
+                        role = 'admin';
+                        break;
+                    case 'Editor':
+                        role = 'editor';
+                        break;
+                    case 'Writer':
+                        role = 'writer';
+                        break;
+                    case 'Reporter':
+                        role = 'reporter';
+                        break;
+                    case 'Photographer':
+                        role = 'photographer';
+                        break;
+                    case 'Reporter/Photographer':
+                        role = 'reporter';
+                        break;
+                    default:
+                        role = 'reporter';
+                }
+                await authModel.findByIdAndUpdate(user._id, { role });
+            }
+
+            const obj = {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                category: user.category,
+                role: role,
+                employeeId: employeeId
+            }
+            const token = await jwt.sign(obj, process.env.JWT_SECRET, {
+                expiresIn: '7d'
+            })
+            return res.status(200).json({ message: 'login success', token })
         } catch (error) {
             console.log(error)
+            return res.status(500).json({ message: 'Internal server error' })
         }
-
     }
 
     signup = async (req, res) => {
@@ -213,7 +217,7 @@ class authController {
                     employeeId = generateEmployeeId();
                     const existingUser = await authModel.findOne({ employeeId });
                     if (!existingUser) {
-                                isUnique = true;
+                        isUnique = true;
                     }
                 }
 
