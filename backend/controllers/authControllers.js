@@ -284,11 +284,16 @@ class authController {
         if (!email) {
             return res.status(404).json({ message: 'please provide email' })
         }
+
+        if (category.trim().toLowerCase() === 'admin') {
+            return res.status(403).json({ message: 'Admin accounts cannot be created from this endpoint' })
+        }
+
         if (email && !email.match(/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/)) {
             return res.status(404).json({ message: 'please provide valide email' })
         }
         try {
-            const writer = await authModel.findOne({ email: email.trim() })
+            const writer = await authModel.findOne({ email: email.trim().toLowerCase() })
             if (writer) {
                 return res.status(404).json({ message: 'User alreasy exit' })
             } else {
@@ -302,6 +307,12 @@ class authController {
                         break;
                     case 'Writer':
                         role = 'writer';
+                        break;
+                    case 'Reporter':
+                        role = 'reporter';
+                        break;
+                    case 'Photographer':
+                        role = 'photographer';
                         break;
                     case 'Reporter/Photographer':
                         role = 'reporter';
