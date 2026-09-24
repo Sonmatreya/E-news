@@ -378,16 +378,17 @@ class newsController {
             if (role === 'admin') {
                 const totalNews = await newsModel.countDocuments({})
                 const draftNews = await newsModel.countDocuments({ status: 'draft' })
-                const reviewNews = await newsModel.countDocuments({ status: 'review' })
-                const approvedNews = await newsModel.countDocuments({ status: 'approved' })
+                const submittedNews = await newsModel.countDocuments({ status: 'submitted' })
+                const reviewedByWriterNews = await newsModel.countDocuments({ status: 'reviewed_by_writer' })
+                const reviewedByEditorNews = await newsModel.countDocuments({ status: 'reviewed_by_editor' })
                 const publishedNews = await newsModel.countDocuments({ status: 'published' })
                 const deactiveNews = await newsModel.countDocuments({ status: 'deactive' })
 
                 return res.status(200).json({
                     totalNews,
                     draftNews,
-                    reviewNews,
-                    approvedNews,
+                    reviewNews: submittedNews + reviewedByWriterNews,
+                    approvedNews: reviewedByEditorNews,
                     publishedNews,
                     deactiveNews
                 })
@@ -860,4 +861,3 @@ class newsController {
     }
 }
 module.exports = new newsController()
-
