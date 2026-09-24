@@ -5,6 +5,31 @@ const { formidable } = require('formidable')
 const cloudinary = require('cloudinary').v2
 
 // In-memory store for login attempts (in production, use Redis or DB)
+const getCloudinaryPublicId = (imageUrl) => {
+    try {
+        if (!imageUrl || !imageUrl.includes('/upload/')) {
+            return null
+        }
+
+        const uploadPart = imageUrl.split('/upload/')[1]
+        if (!uploadPart) {
+            return null
+        }
+
+        const pathParts = uploadPart.split('/')
+        const versionIndex = pathParts.findIndex(part => /^v\d+$/.test(part))
+
+        if (versionIndex !== -1) {
+            pathParts.splice(0, versionIndex + 1)
+        }
+
+        const publicId = pathParts.join('/').replace(/\.[^/.]+$/, '')
+        return publicId || null
+    } catch (error) {
+        return null
+    }
+}
+
 const loginAttempts = new Map()
 
 // Anomaly detection: track failed login attempts per IP
@@ -470,12 +495,26 @@ class authController {
                 return res.status(404).json({ message: 'User not found' })
             }
 
+            const oldImage = user.image
+
             const upload = await cloudinary.uploader.upload(imageFile.filepath, {
                 folder: 'profile_images'
             })
 
             user.image = upload.secure_url
             await user.save()
+
+            // Remove the previous profile image after the new image is saved.
+            // If deletion fails, keep the new profile image and log the cleanup error.
+            const oldPublicId = getCloudinaryPublicId(oldImage)
+
+            if (oldPublicId) {
+                try {
+                    await cloudinary.uploader.destroy(oldPublicId, { resource_type: 'image' })
+                } catch (cleanupError) {
+                    console.log('Error deleting old profile image:', cleanupError.message)
+                }
+            }
 
             return res.status(200).json({
                 message: 'Profile image updated successfully',
