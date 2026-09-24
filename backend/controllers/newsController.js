@@ -546,8 +546,24 @@ class newsController {
 
     get_dashboard_single_news = async (req, res) => {
         const { news_id } = req.params
+        const { id, role } = req.userInfo
+
         try {
             const news = await newsModel.findById(news_id)
+
+            if (!news) {
+                return res.status(404).json({ message: 'News not found' })
+            }
+
+            // Admins, editors, and writers can view dashboard news.
+            // Reporters and photographers can view only their own news.
+            const canViewAnyNews = ['admin', 'editor', 'writer'].includes(role)
+            const isOwner = news.writerId && news.writerId.toString() === id
+
+            if (!canViewAnyNews && !isOwner) {
+                return res.status(403).json({ message: 'You do not have permission to view this news' })
+            }
+
             return res.status(200).json({ news })
         } catch (error) {
             console.log(error.message)
