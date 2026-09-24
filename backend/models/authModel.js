@@ -29,6 +29,11 @@ const authSchema = new Schema({
     employeeId: {
         type: String,
         unique: true
+    },
+    // When this changes, JWTs issued before the change are no longer valid.
+    passwordChangedAt: {
+        type: Date,
+        default: null
     }
 }, { timestamps: true })
 
