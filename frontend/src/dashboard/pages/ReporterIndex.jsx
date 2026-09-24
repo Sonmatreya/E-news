@@ -46,7 +46,7 @@ const ReporterIndex = () => {
 
     const view_news = async (id) => {
         try {
-            const { data } = await axios.get(`${base_url}/api/news/${id}`, {
+            const { data } = await axios.get(`${base_url}/api/dashboard/news/${id}`, {
                 headers: {
                     'Authorization': `Bearer ${store.token}`
                 }
