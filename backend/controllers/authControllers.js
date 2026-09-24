@@ -502,6 +502,9 @@ class authController {
         if (!new_password) {
             return res.status(400).json({ message: 'Please provide your new password' })
         }
+        if (new_password.trim().length < 8) {
+            return res.status(400).json({ message: 'New password must be at least 8 characters' })
+        }
 
         try {
             const user = await authModel.findById(id).select('+password')
@@ -514,7 +517,7 @@ class authController {
                 return res.status(400).json({ message: 'Old password is incorrect' })
             }
 
-            const hashedNewPassword = await bcrypt.hash(new_password, 10)
+            const hashedNewPassword = await bcrypt.hash(new_password.trim(), 10)
             await authModel.findByIdAndUpdate(id, { password: hashedNewPassword })
 
             return res.status(200).json({ message: 'Password changed successfully' })
