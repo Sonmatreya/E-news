@@ -51,7 +51,7 @@ const Header_Category = () => {
                     <div className='flex-wrap hidden lg:flex'>
                         <Link className={`px-6 font-medium py-[13px] ${path === '/' ? 'bg-[#00000026]' : ''}`} href={'/'} >Home</Link>
                         {
-                            categories.length > 0 && categories.map((c, i) => <Link key={i} className={`px-6 font-medium py-[13px] ${path === c.category ? 'bg-[#00000026]' : ''}`} href={`/news/category/${c.category}`} >{c.category}</Link>)
+                            categories.length > 0 && categories.map((c, i) => <Link key={i} className={`px-6 font-medium py-[13px] ${path === `/news/category/${c.category}` ? 'bg-[#00000026]' : ''}`} href={`/news/category/${c.category}`} >{c.category}</Link>)
                         }
                     </div>
                     <div className='h-full w-[48px]'>
@@ -85,7 +85,7 @@ const Header_Category = () => {
                 cate_show && <div className='flex flex-wrap lg:hidden py-2 px-[30px]'>
                     <Link className={`px-4 font-medium py-[5px] ${path === '/' ? 'bg-[#00000026]' : ''}`} href={'/'} >Home</Link>
                     {
-                        categories.length > 0 && categories.map((c, i) => <Link key={i} className={`px-4 font-medium py-[5px] ${path === c.category ? 'bg-[#00000026]' : ''}`} href={`/news/category/${c.category}`} >{c.category}</Link>)
+                        categories.length > 0 && categories.map((c, i) => <Link key={i} className={`px-4 font-medium py-[5px] ${path === `/news/category/${c.category}` ? 'bg-[#00000026]' : ''}`} href={`/news/category/${c.category}`} >{c.category}</Link>)
                     }
                 </div>
             }
