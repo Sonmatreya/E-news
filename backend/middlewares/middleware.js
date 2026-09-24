@@ -4,56 +4,72 @@ class middleware {
 
     auth = async (req, res, next) => {
 
-        const { authorization } = req.headers
+        const authHeader = req.headers.authorization
 
-        if (authorization) {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ message: 'Unauthorized' })
+        }
 
-            const token = authorization.split('Bearer ')[1]
+        const token = authHeader.slice(7).trim()
 
-            if (token) {
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized' })
+        }
 
-                try {
-                    const userInfo = await jwt.verify(token, process.env.JWT_SECRET)
-                    req.userInfo = userInfo
-                    next()
+        if (!process.env.JWT_SECRET) {
+            console.error('JWT_SECRET is not configured')
+            return res.status(500).json({ message: 'Authentication service is not configured' })
+        }
 
-                } catch (error) {
-                    return res.status(401).json({ message: "Unauthorized" })
-                }
-
-            } else {
-                return res.status(401).json({ message: "Unauthorized" })
-            }
-        } else {
-            return res.status(401).json({ message: "Unauthorized" })
+        try {
+            const userInfo = await jwt.verify(token, process.env.JWT_SECRET)
+            req.userInfo = userInfo
+            next()
+        } catch (error) {
+            return res.status(401).json({ message: 'Unauthorized' })
         }
     }
 
     role = async (req, res, next) => {
         const { userInfo } = req
-        if (userInfo.role === 'admin') {
-            next()
-        } else {
-            return res.status(401).json({ message: "unable to access this api" })
+
+        if (!userInfo) {
+            return res.status(401).json({ message: 'Unauthorized' })
         }
+
+        if (userInfo.role === 'admin') {
+            return next()
+        }
+
+        return res.status(403).json({ message: 'Forbidden' })
     }
 
     editorOrAdmin = async (req, res, next) => {
         const { userInfo } = req
-        if (userInfo.role === 'admin' || userInfo.role === 'editor') {
-            next()
-        } else {
-            return res.status(401).json({ message: "unable to access this api" })
+
+        if (!userInfo) {
+            return res.status(401).json({ message: 'Unauthorized' })
         }
+
+        if (userInfo.role === 'admin' || userInfo.role === 'editor') {
+            return next()
+        }
+
+        return res.status(403).json({ message: 'Forbidden' })
     }
 
     writerOrAbove = async (req, res, next) => {
         const { userInfo } = req
-        if (['admin', 'editor', 'writer'].includes(userInfo.role)) {
-            next()
-        } else {
-            return res.status(401).json({ message: "unable to access this api" })
+
+        if (!userInfo) {
+            return res.status(401).json({ message: 'Unauthorized' })
         }
+
+        if (['admin', 'editor', 'writer'].includes(userInfo.role)) {
+            return next()
+        }
+
+        return res.status(403).json({ message: 'Forbidden' })
     }
 }
 
