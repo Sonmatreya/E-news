@@ -63,7 +63,8 @@ const AddWriter = () => {
                 <option value="Admin">Admin</option>
                 <option value="Editor">Editor</option>
                 <option value="Writer">Writer</option>
-                <option value="Reporter/Photographer">Reporter/Photographer</option>
+                <option value="Reporter">Reporter</option>
+                <option value="Photographer">Photographer</option>
               </select>
             </div>
           </div>
