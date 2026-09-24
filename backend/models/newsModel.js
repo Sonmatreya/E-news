@@ -34,6 +34,10 @@ const newsSchema = new Schema({
         type: String,
         required: true
     },
+    time: {
+        type: String,
+        default: ''
+    },
     assignedTo: {
         type: Schema.Types.ObjectId,
         ref: 'authors'
