@@ -598,29 +598,23 @@ class newsController {
 
         try {
 
-            const news = await newsModel.findOneAndUpdate({ slug }, {
-                $inc: { count: 1 }
-            }, { new: true })
+            const news = await newsModel.findOneAndUpdate(
+                { slug, status: 'published' },
+                { $inc: { count: 1 } },
+                { new: true }
+            )
+
+            if (!news) {
+                return res.status(404).json({ message: 'News not found' })
+            }
 
             const relateNews = await newsModel.find({
-                $and: [
-                    {
-                        slug: {
-                            $ne: slug
-                        }
-                    }, {
-                        category: {
-                            $eq: news.category
-                        }
-                    }, {
-                        status: {
-                            $eq: 'published'
-                        }
-                    }
-                ]
+                slug: { $ne: slug },
+                category: news.category,
+                status: 'published'
             }).limit(4).sort({ createdAt: -1 })
 
-            return res.status(200).json({ news: news ? news : {}, relateNews })
+            return res.status(200).json({ news, relateNews })
         } catch (error) {
             console.log(error.message)
             return res.status(500).json({ message: 'Internal server error' })
