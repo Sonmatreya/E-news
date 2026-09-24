@@ -17,6 +17,31 @@ const createSlug = (title) => {
         .replace(/^-|-$/g, '')
 }
 
+const getCloudinaryPublicId = (imageUrl) => {
+    try {
+        if (!imageUrl || !imageUrl.includes('/upload/')) {
+            return null
+        }
+
+        const uploadPart = imageUrl.split('/upload/')[1]
+        if (!uploadPart) {
+            return null
+        }
+
+        const pathParts = uploadPart.split('/')
+        const versionIndex = pathParts.findIndex(part => /^v\\d+$/.test(part))
+
+        if (versionIndex !== -1) {
+            pathParts.splice(0, versionIndex + 1)
+        }
+
+        const publicId = pathParts.join('/').replace(/\\.[^/.]+$/, '')
+        return publicId || null
+    } catch (error) {
+        return null
+    }
+}
+
 class newsController {
     add_news = async (req, res) => {
         console.log('Starting add_news')
@@ -121,11 +146,14 @@ class newsController {
             }
 
             if (Object.keys(files).length > 0) {
-                const spliteImage = url.split('/')
-                const imagesFile = spliteImage[spliteImage.length - 1].split('.')[0]
-                await cloudinary.uploader.destroy(imagesFile);
+                const oldPublicId = getCloudinaryPublicId(url)
+
+                if (oldPublicId) {
+                    await cloudinary.uploader.destroy(oldPublicId, { resource_type: 'image' })
+                }
+
                 const data = await cloudinary.uploader.upload(files.new_image[0].filepath, { folder: 'news_images' })
-                url = data.url
+                url = data.secure_url
             }
 
             const news = await newsModel.findByIdAndUpdate(news_id, {
@@ -766,9 +794,11 @@ class newsController {
                     api_secret: process.env.CLOUDINARY_API_SECRET,
                     secure: true
                 })
-                const spliteImage = news.image.split('/')
-                const imagesFile = spliteImage[spliteImage.length - 1].split('.')[0]
-                await cloudinary.uploader.destroy(imagesFile)
+                const publicId = getCloudinaryPublicId(news.image)
+
+                if (publicId) {
+                    await cloudinary.uploader.destroy(publicId, { resource_type: 'image' })
+                }
             }
 
             // Delete news from database
