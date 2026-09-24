@@ -313,6 +313,34 @@ class authController {
         }
     }
 
+    delete_member = async (req, res) => {
+        const { id } = req.params
+
+        try {
+            const member = await authModel.findById(id)
+
+            if (!member) {
+                return res.status(404).json({ message: 'Member not found' })
+            }
+
+            // Admins can delete staff accounts, but an admin cannot delete their own account here.
+            if (member.role === 'admin') {
+                return res.status(403).json({ message: 'Admin accounts cannot be deleted from the members page' })
+            }
+
+            if (member._id.toString() === req.userInfo.id) {
+                return res.status(403).json({ message: 'You cannot delete your own account' })
+            }
+
+            await authModel.findByIdAndDelete(id)
+
+            return res.status(200).json({ message: 'Member deleted successfully' })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ message: 'Internal server error' })
+        }
+    }
+
     get_writer = async (req, res) => {
         const { id } = req.params
 
