@@ -159,8 +159,36 @@ class newsController {
 
         try {
             const [fields, files] = await form.parse(req)
-            const { title, description } = fields
-            let url = fields.old_image[0]
+            const { title, description, category: selectedCategory, old_image } = fields
+
+            if (!title || !title[0] || !title[0].trim()) {
+                return res.status(400).json({ message: 'Title is required' })
+            }
+
+            if (!description || !description[0] || !description[0].trim()) {
+                return res.status(400).json({ message: 'Description is required' })
+            }
+
+            if (!old_image || !old_image[0] || !old_image[0].trim()) {
+                return res.status(400).json({ message: 'Existing image is required' })
+            }
+
+            const newsCategory = selectedCategory && selectedCategory[0]
+                ? selectedCategory[0].trim()
+                : null
+
+            if (newsCategory) {
+                const activeCategory = await categoryModel.findOne({
+                    name: newsCategory,
+                    status: 'active'
+                })
+
+                if (!activeCategory) {
+                    return res.status(400).json({ message: 'Selected category is not active or does not exist' })
+                }
+            }
+
+            let url = old_image[0]
             const cleanTitle = title[0].trim()
             const baseSlug = createSlug(cleanTitle)
             let slug = baseSlug
@@ -186,6 +214,7 @@ class newsController {
                 title: cleanTitle,
                 slug,
                 description: description[0].replace(/\n/g, '<br>'),
+                ...(newsCategory ? { category: newsCategory } : {}),
                 image: url,
                 date: moment().format('LL'),
                 time: moment().format('LTS')
