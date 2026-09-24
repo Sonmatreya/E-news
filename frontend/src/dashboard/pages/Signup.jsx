@@ -96,7 +96,6 @@ const Signup = () => {
               <label className='text-md font-medium text-gray-600' htmlFor="category">Category</label>
               <select value={state.category} required onChange={inputHandle} name='category' className='px-3 py-2 rounded-md outline-0 border border-gray-300 focus:border-red-500 h-10' id='category'>
                 <option value="">Select Role</option>
-                <option value="Admin">Admin</option>
                 <option value="Editor">Editor</option>
                 <option value="Writer">Writer</option>
                 <option value="Reporter/Photographer">Reporter/Photographer</option>
