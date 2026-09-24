@@ -70,6 +70,27 @@ const newsSchema = new Schema({
     count: {
         type: Number,
         default: 0
+    },
+    sourceType: {
+        type: String,
+        enum: ['internal', 'gnews'],
+        default: 'internal'
+    },
+    sourceName: {
+        type: String,
+        default: ''
+    },
+    sourceUrl: {
+        type: String,
+        default: ''
+    },
+    originalUrl: {
+        type: String,
+        default: ''
+    },
+    importedBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'authors'
     }
 }, { timestamps: true })
 
