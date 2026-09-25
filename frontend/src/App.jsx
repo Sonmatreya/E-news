@@ -17,6 +17,7 @@ import Profile from './dashboard/pages/Profile'
 import WriterIndex from './dashboard/pages/WriterIndex'
 import EditorIndex from './dashboard/pages/EditorIndex'
 import ReporterIndex from './dashboard/pages/ReporterIndex'
+import PhotographerIndex from './dashboard/pages/PhotographerIndex'
 import CreateNews from './dashboard/pages/CreateNews'
 import storeContext from './context/storeContext'
 import Edit_news from './dashboard/pages/Edit_news'
@@ -38,6 +39,7 @@ function App() {
               store.userInfo?.role === 'admin' ? <Navigate to='/dashboard/admin' /> :
               store.userInfo?.role === 'editor' ? <Navigate to='/dashboard/editor' /> :
               store.userInfo?.role === 'reporter' ? <Navigate to='/dashboard/reporter' /> :
+              store.userInfo?.role === 'photographer' ? <Navigate to='/dashboard/photographer' /> :
               <Navigate to='/dashboard/writer' />
             } />
             <Route path='unable-access' element={<Unable />} />
@@ -68,7 +70,7 @@ function App() {
             </Route>
 
             <Route path='' element={<ProtectRole role='photographer' />} >
-              <Route path='photographer' element={<ReporterIndex />} />
+              <Route path='photographer' element={<PhotographerIndex />} />
             </Route>
 
             <Route path='' element={<ProtectRole role='writerOrReporter' />} >
