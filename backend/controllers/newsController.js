@@ -6,6 +6,7 @@ const galleryModel = require('../models/galleryModel')
 const categoryModel = require('../models/categoryModel')
 const { mongo: { ObjectId } } = require('mongoose')
 const moment = require('moment')
+const { emitNewsEvent } = require('../socket')
 
 const createSlug = (title) => {
     return title
@@ -116,6 +117,7 @@ class newsController {
                 image: url,
                 status: status
             })
+            emitNewsEvent(req, 'news:created', news)
             return res.status(201).json({ message: 'News add success', news })
         } catch (error) {
             console.log('Error in add_news:', error.message)
@@ -221,6 +223,7 @@ class newsController {
                 time: moment().format('LTS')
             }, { new: true })
 
+            emitNewsEvent(req, 'news:updated', news)
             return res.status(200).json({ message: 'news update success', news })
         } catch (error) {
             console.log('Error in update_news:', error)
@@ -259,6 +262,7 @@ class newsController {
                     notes: verificationNotes || 'Published by admin'
                 }
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, updateData, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else if (status === 'rejected') {
                 const updateData = {
@@ -889,6 +893,7 @@ class newsController {
             // Delete news from database
             await newsModel.findByIdAndDelete(news_id)
 
+            emitNewsEvent(req, 'news:deleted', news)
             return res.status(200).json({ message: 'News deleted successfully' })
         } catch (error) {
             console.log('Error in delete_news:', error.message)
