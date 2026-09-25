@@ -173,7 +173,7 @@ class newsController {
             // Admins and editors can edit any news.
             // Writers, reporters, and photographers can edit only their own news.
             const canEditAnyNews = role === 'admin' || role === 'editor'
-            const isOwner = news.writerId && news.writerId.toString() === id
+            const isOwner = (role === 'reporter' && news.reporterId && news.reporterId.toString() === id) || (role === 'writer' && news.writerId && news.writerId.toString() === id)
             const isAssignedWriter = news.assignedTo && news.assignedTo.toString() === id
 
             if (!canEditAnyNews && !isOwner && !isAssignedWriter) {
@@ -549,7 +549,7 @@ class newsController {
                 return res.status(200).json({ news })
             } else {
                 // Reporters, photographers see their own news
-                const news = await newsModel.find({ writerId: new ObjectId(id) }).sort({ createdAt: -1 })
+                const news = await newsModel.find({ reporterId: new ObjectId(id) }).sort({ createdAt: -1 })
                 return res.status(200).json({ news })
             }
         } catch (error) {
@@ -613,7 +613,7 @@ class newsController {
             } else {
                 // For reporters, photographers - show their own news stats
                 const totalNews = await newsModel.countDocuments({ writerId: new ObjectId(id) })
-                const draftNews = await newsModel.countDocuments({ writerId: new ObjectId(id), status: 'draft' })
+                const draftNews = await newsModel.countDocuments({ reporterId: new ObjectId(id), status: 'draft' })
                 const reviewNewsCount = await newsModel.countDocuments({ writerId: new ObjectId(id), status: 'submitted' })
                 const publishedNews = await newsModel.countDocuments({ writerId: new ObjectId(id), status: 'published' })
                 const deactiveNews = await newsModel.countDocuments({ writerId: new ObjectId(id), status: 'deactive' })
@@ -678,7 +678,7 @@ class newsController {
             // Admins, editors, and writers can view dashboard news.
             // Reporters and photographers can view only their own news.
             const canViewAnyNews = ['admin', 'editor', 'writer'].includes(role)
-            const isOwner = news.writerId && news.writerId.toString() === id
+            const isOwner = (role === 'reporter' && news.reporterId && news.reporterId.toString() === id)
 
             if (!canViewAnyNews && !isOwner) {
                 return res.status(403).json({ message: 'You do not have permission to view this news' })
@@ -929,7 +929,7 @@ class newsController {
             // Admins and editors can delete any news.
             // Writers, reporters, and photographers can delete only their own news.
             const canDeleteAnyNews = role === 'admin' || role === 'editor'
-            const isOwner = news.writerId && news.writerId.toString() === id
+            const isOwner = role === 'reporter' && news.reporterId && news.reporterId.toString() === id
 
             if (!canDeleteAnyNews && !isOwner) {
                 return res.status(403).json({ message: 'You do not have permission to delete this news' })
