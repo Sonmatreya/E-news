@@ -83,6 +83,8 @@ const fetchGNews = async (req, res) => {
     }
 }
 
+const { emitNewsEvent } = require('../socket')
+
 const importGNews = async (req, res) => {
     const { id: adminId, role: adminRole } = req.userInfo
     const {
@@ -182,6 +184,8 @@ const importGNews = async (req, res) => {
             originalUrl: String(url).trim(),
             importedBy: adminId
         })
+
+        emitNewsEvent(req, 'news:created', news)
 
         return res.status(201).json({
             message: 'External news imported and assigned to writer',
