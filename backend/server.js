@@ -1,4 +1,7 @@
 const express = require('express')
+const http = require('http')
+const { Server } = require('socket.io')
+const { setupSocket } = require('./socket')
 const app = express()
 const dotenv = require('dotenv')
 const body_parser = require('body-parser')
@@ -14,6 +17,19 @@ app.use(body_parser.json())
 
 // ✅ CORS CONFIG FIX
 const allowedOrigins = ['https://e-news-reader.onrender.com', 'https://e-news-main.onrender.com','http://localhost:5173', 'http://localhost:3000'];
+
+const httpServer = http.createServer(app)
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: allowedOrigins,
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+})
+
+app.set('io', io)
+setupSocket(io)
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -37,7 +53,7 @@ const port = process.env.PORT || 5000
 const startServer = async () => {
     try {
         await db_connect()
-        app.listen(port, () => console.log(`Server running on port ${port}`))
+        httpServer.listen(port, () => console.log(`Server running on port ${port}`))
     } catch (error) {
         console.error('Failed to start server:', error)
         process.exit(1)
