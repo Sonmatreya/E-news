@@ -72,6 +72,12 @@ const Sidebar = () => {
                                 <span>Dashboard</span>
                             </Link>
                         </li>
+                        <li>
+                            <Link to='/dashboard/news/create' className={`px-3 ${pathname === '/dashboard/news/create' ? 'bg-red-500 text-white' : 'bg-white text-[#404040f6]'} py-2 hover:shadow-lg hover:shadow-red-500/20 w-full rounded-sm flex gap-x-2 justify-start items-center hover:bg-red-500 hover:text-white`}>
+                                <span className='text-xl'><FaPlus /></span>
+                                <span>Create News</span>
+                            </Link>
+                        </li>
                     </> : store.userInfo?.role === 'writer' ? <>
                         <li>
                             <Link to='/dashboard/writer' className={`px-3 ${pathname === '/dashboard/writer' ? 'bg-red-500 text-white' : 'bg-white text-[#404040f6]'} py-2 hover:shadow-lg hover:shadow-red-500/20 w-full rounded-sm flex gap-x-2 justify-start items-center hover:bg-red-500 hover:text-white`}>
