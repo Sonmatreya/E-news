@@ -612,11 +612,11 @@ class newsController {
                 })
             } else {
                 // For reporters, photographers - show their own news stats
-                const totalNews = await newsModel.countDocuments({ writerId: new ObjectId(id) })
+                const totalNews = await newsModel.countDocuments({ reporterId: new ObjectId(id) })
                 const draftNews = await newsModel.countDocuments({ reporterId: new ObjectId(id), status: 'draft' })
-                const reviewNewsCount = await newsModel.countDocuments({ writerId: new ObjectId(id), status: 'submitted' })
-                const publishedNews = await newsModel.countDocuments({ writerId: new ObjectId(id), status: 'published' })
-                const deactiveNews = await newsModel.countDocuments({ writerId: new ObjectId(id), status: 'deactive' })
+                const reviewNewsCount = await newsModel.countDocuments({ reporterId: new ObjectId(id), status: 'submitted' })
+                const publishedNews = await newsModel.countDocuments({ reporterId: new ObjectId(id), status: 'published' })
+                const deactiveNews = await newsModel.countDocuments({ reporterId: new ObjectId(id), status: 'deactive' })
 
                 return res.status(200).json({
                     totalNews,
@@ -706,8 +706,8 @@ class newsController {
                 const news = await newsModel.find({}).sort({ createdAt: -1 }).limit(5)
                 return res.status(200).json({ news })
             } else {
-                // Reporters, photographers see their own recent news
-                const news = await newsModel.find({ writerId: new ObjectId(id) }).sort({ createdAt: -1 }).limit(5)
+                // Reporters see their own recent news
+                const news = await newsModel.find({ reporterId: new ObjectId(id) }).sort({ createdAt: -1 }).limit(5)
                 return res.status(200).json({ news })
             }
         } catch (error) {
