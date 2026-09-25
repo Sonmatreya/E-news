@@ -274,6 +274,7 @@ class newsController {
                     returnTo: 'editor' // Send back to editor
                 }
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, updateData, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else if (status === 'deactive') {
                 const updateData = {
@@ -284,6 +285,7 @@ class newsController {
                     notes: verificationNotes || 'Deactivated by admin'
                 }
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, updateData, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else {
                 return res.status(401).json({ message: 'Admin can only publish, reject, or deactivate news' })
@@ -299,6 +301,7 @@ class newsController {
                     notes: verificationNotes || 'Reviewed by editor'
                 }
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, updateData, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else if (news.status === 'rework_needed' && news.returnTo === 'editor' && status === 'reviewed_by_editor') {
                 const updateData = {
@@ -309,6 +312,7 @@ class newsController {
                     notes: verificationNotes || 'Reworked by editor'
                 }
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, updateData, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else if (status === 'rejected') {
                 const updateData = {
@@ -320,6 +324,7 @@ class newsController {
                     returnTo: 'writer' // Send back to writer
                 }
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, updateData, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else {
                 return res.status(401).json({ message: 'Editor can only review writer-verified news, rework needed news, or reject them' })
@@ -332,6 +337,7 @@ class newsController {
                     verificationStatus: 'under review',
                     notes: 'Submitted by writer'
                 }, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else if (news.status === 'submitted' && status === 'reviewed_by_writer') {
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, {
@@ -341,6 +347,7 @@ class newsController {
                     verifiedAt: new Date(),
                     notes: verificationNotes || 'Submitted to editor by writer'
                 }, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else if (news.status === 'rework_needed' && news.returnTo === 'writer' && status === 'reviewed_by_writer') {
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, {
@@ -350,6 +357,7 @@ class newsController {
                     verifiedAt: new Date(),
                     notes: verificationNotes || 'Reworked by writer'
                 }, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else {
                 return res.status(401).json({ message: 'Can only submit drafts, review submitted news, or rework needed news' })
@@ -362,6 +370,7 @@ class newsController {
                     verificationStatus: 'under review',
                     notes: 'Submitted for review'
                 }, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else if (news.status === 'rework_needed' && news.returnTo === role && status === 'submitted') {
                 const updatedNews = await newsModel.findByIdAndUpdate(news_id, {
@@ -369,6 +378,7 @@ class newsController {
                     verificationStatus: 'under review',
                     notes: 'Resubmitted after rework'
                 }, { new: true })
+                emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else {
                 return res.status(401).json({ message: 'Can only submit drafts or resubmit reworked news' })
