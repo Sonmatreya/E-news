@@ -17,60 +17,87 @@ const ReporterIndex = () => {
     const [news, setNews] = useState([])
     const [viewModal, setViewModal] = useState(false)
     const [selectedNews, setSelectedNews] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+
+    const authConfig = {
+        headers: {
+            Authorization: `Bearer ${store.token}`
+        }
+    }
 
     const get_stats = async () => {
         try {
-            const { data } = await axios.get(`${base_url}/api/writer/stats`, {
-                headers: {
-                    'Authorization': `Bearer ${store.token}`
-                }
+            const { data } = await axios.get(`${base_url}/api/writer/stats`, authConfig)
+            setStats({
+                totalNews: data.totalNews ?? 0,
+                drafts: data.drafts ?? 0,
+                inReview: data.inReview ?? 0,
+                published: data.published ?? 0,
+                deactive: data.deactive ?? 0
             })
-            setStats(data)
         } catch (error) {
-            console.log(error)
+            console.log('Reporter stats error:', error.response?.data || error.message)
+            setError(error.response?.data?.message || 'Unable to load reporter dashboard data')
         }
     }
 
     const get_news = async () => {
         try {
-            const { data } = await axios.get(`${base_url}/api/dashboard/recent-news`, {
-                headers: {
-                    'Authorization': `Bearer ${store.token}`
-                }
-            })
-            setNews(data.news.slice(0, 5)) // Show latest 5 news
+            const { data } = await axios.get(`${base_url}/api/dashboard/recent-news`, authConfig)
+            setNews(Array.isArray(data.news) ? data.news.slice(0, 5) : [])
         } catch (error) {
-            console.log(error)
+            console.log('Reporter news error:', error.response?.data || error.message)
+            setNews([])
+            setError(error.response?.data?.message || 'Unable to load your news')
+        } finally {
+            setLoading(false)
         }
     }
 
     const view_news = async (id) => {
         try {
-            const { data } = await axios.get(`${base_url}/api/dashboard/news/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${store.token}`
-                }
-            })
-            // Convert newlines to HTML breaks for proper display
-            const newsWithFormattedDescription = {
+            const { data } = await axios.get(`${base_url}/api/dashboard/news/${id}`, authConfig)
+            const description = data.news?.description || ''
+            setSelectedNews({
                 ...data.news,
-                description: data.news.description.replace(/\n/g, '<br>')
-            }
-            setSelectedNews(newsWithFormattedDescription)
+                description: description.replace(/\n/g, '<br>')
+            })
             setViewModal(true)
         } catch (error) {
-            console.log(error)
+            console.log('Reporter news details error:', error.response?.data || error.message)
         }
     }
 
     useEffect(() => {
-        get_stats()
-        get_news()
-    }, [])
+        if (store.token) {
+            get_stats()
+            get_news()
+        }
+    }, [store.token])
+
+    const getStatusClass = (status) => {
+        if (status === 'published') return 'bg-green-100 text-green-800'
+        if (status === 'submitted') return 'bg-blue-100 text-blue-800'
+        if (status === 'reviewed_by_writer') return 'bg-purple-100 text-purple-800'
+        if (status === 'reviewed_by_editor') return 'bg-indigo-100 text-indigo-800'
+        if (status === 'rework_needed') return 'bg-orange-100 text-orange-800'
+        if (status === 'draft') return 'bg-gray-100 text-gray-800'
+        if (status === 'deactive') return 'bg-red-100 text-red-800'
+        return 'bg-yellow-100 text-yellow-800'
+    }
+
+    const formatStatus = (status) => {
+        if (!status) return 'Unknown'
+        return status
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+    }
 
     return (
         <div className='mt-2'>
-            <div className='grid grid-cols-4 gap-x-4 mb-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
                 <div className='w-full p-8 flex justify-center flex-col rounded-md items-center gap-y-2 bg-white text-slate-700'>
                     <span className='text-xl font-bold'>{stats.totalNews}</span>
                     <span className='text-md'>Total News</span>
@@ -91,28 +118,55 @@ const ReporterIndex = () => {
 
             <div className='bg-white p-4 rounded-md'>
                 <div className='flex justify-between items-center mb-4'>
-                    <h2 className='text-xl font-semibold text-slate-700'>My News</h2>
-                    <Link to='/dashboard/news' className='px-3 py-1 bg-red-500 text-white rounded-sm hover:bg-red-600'>View All</Link>
-                </div>
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                    {news.map((n, i) => (
-                        <div key={i} className='border border-gray-200 rounded-md p-4 cursor-pointer' onClick={() => view_news(n._id)}>
-                            <img className='w-full h-32 object-top rounded-md mb-2' src={n.image} alt={n.title} />
-                            <h3 className='text-lg font-semibold text-slate-700 mb-1'>{n.title}</h3>
-                            <p className='text-sm text-gray-600 mb-2 break-words' dangerouslySetInnerHTML={{ __html: n.description.slice(0, 100) + '...' }}></p>
-                            <div className='flex justify-between items-center'>
-                                <span className={`px-2 py-1 text-xs rounded ${n.status === 'published' ? 'bg-green-100 text-green-800' : n.status === 'review' ? 'bg-blue-100 text-blue-800' : n.status === 'draft' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                    {n.status.replace(/\b\w/g, l => l.toUpperCase())}
-                                </span>
-                                <span className='text-xs text-gray-500'>{n.date}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                {news.length === 0 && (
-                    <div className='text-center py-8'>
-                        <p className='text-gray-500'>No news available. Create your first news article.</p>
+                    <div>
+                        <h2 className='text-xl font-semibold text-slate-700'>My News</h2>
+                        <p className='text-sm text-gray-500 mt-1'>News created by you using photographer images</p>
                     </div>
+                    <Link to='/dashboard/news/create' className='px-3 py-1 bg-red-500 text-white rounded-sm hover:bg-red-600'>
+                        Create News
+                    </Link>
+                </div>
+
+                {error && (
+                    <div className='mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm'>
+                        {error}
+                    </div>
+                )}
+
+                {loading ? (
+                    <div className='text-center py-8 text-gray-500'>Loading your news...</div>
+                ) : (
+                    <>
+                        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+                            {news.map((n) => (
+                                <div key={n._id} className='border border-gray-200 rounded-md p-4 cursor-pointer hover:shadow-md transition' onClick={() => view_news(n._id)}>
+                                    {n.image && (
+                                        <img className='w-full h-32 object-cover rounded-md mb-2' src={n.image} alt={n.title || 'News'} />
+                                    )}
+                                    <h3 className='text-lg font-semibold text-slate-700 mb-1'>{n.title || 'Untitled'}</h3>
+                                    <p className='text-sm text-gray-600 mb-2 break-words'>
+                                        {(n.description || '').replace(/<[^>]*>/g, '').slice(0, 100)}
+                                        {(n.description || '').length > 100 ? '...' : ''}
+                                    </p>
+                                    <div className='flex justify-between items-center gap-2'>
+                                        <span className={`px-2 py-1 text-xs rounded ${getStatusClass(n.status)}`}>
+                                            {formatStatus(n.status)}
+                                        </span>
+                                        <span className='text-xs text-gray-500'>{n.date || ''}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {news.length === 0 && (
+                            <div className='text-center py-8'>
+                                <p className='text-gray-500'>No news created yet.</p>
+                                <Link to='/dashboard/news/create' className='inline-block mt-3 px-4 py-2 bg-red-500 text-white rounded-sm hover:bg-red-600'>
+                                    Create Your First News
+                                </Link>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
@@ -128,17 +182,19 @@ const ReporterIndex = () => {
                                 &times;
                             </button>
                         </div>
-                        <div className='flex flex-col gap-y-5'>
-                            <img src={selectedNews.image} alt={selectedNews.title} className='w-full h-64 object-top rounded' />
+                        <div className='flex flex-col gap-y-5 mt-5'>
+                            {selectedNews.image && (
+                                <img src={selectedNews.image} alt={selectedNews.title} className='w-full h-64 object-cover rounded' />
+                            )}
                             <div className='flex flex-col gap-y-4'>
                                 <h3 className='text-red-700 uppercase font-medium text-xl'>{selectedNews.category}</h3>
                                 <h2 className='text-3xl text-gray-700 font-bold'>{selectedNews.title}</h2>
                                 <div className='flex gap-x-2 text-xs font-normal text-slate-600'>
-                                    <span>{selectedNews.date}/</span>
-                                    <span>{selectedNews.writerName}</span>
+                                    <span>{selectedNews.date}</span>
+                                    <span>{selectedNews.reporterName || selectedNews.writerName || 'Reporter'}</span>
                                 </div>
                                 <div className='text-gray-700 leading-relaxed prose prose-sm max-w-none break-words'>
-                                    {htmlParser(selectedNews.description)}
+                                    {htmlParser(selectedNews.description || '')}
                                 </div>
                             </div>
                         </div>
