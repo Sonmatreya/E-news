@@ -130,8 +130,8 @@ class newsController {
             }
 
             const news = await newsModel.create({
-                writerId: id,
-                writerName: name,
+                        writerId: null,
+                writerName: '',
                 reporterId: id,
                 reporterName: name,
                 title: cleanTitle,
