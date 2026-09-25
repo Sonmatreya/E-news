@@ -18,6 +18,7 @@ import WriterIndex from './dashboard/pages/WriterIndex'
 import EditorIndex from './dashboard/pages/EditorIndex'
 import ReporterIndex from './dashboard/pages/ReporterIndex'
 import PhotographerIndex from './dashboard/pages/PhotographerIndex'
+import PhotographerUpload from './dashboard/pages/PhotographerUpload'
 import CreateNews from './dashboard/pages/CreateNews'
 import storeContext from './context/storeContext'
 import Edit_news from './dashboard/pages/Edit_news'
@@ -71,6 +72,7 @@ function App() {
 
             <Route path='' element={<ProtectRole role='photographer' />} >
               <Route path='photographer' element={<PhotographerIndex />} />
+              <Route path='photographer/upload' element={<PhotographerUpload />} />
             </Route>
 
             <Route path='' element={<ProtectRole role='writerOrReporter' />} >
