@@ -47,6 +47,10 @@ class newsController {
     add_news = async (req, res) => {
         console.log('Starting add_news')
         const { id, category, name, role } = req.userInfo
+
+        if (role !== 'reporter') {
+            return res.status(403).json({ message: 'Only reporters can create news articles' })
+        }
         console.log('userInfo:', req.userInfo)
         const form = formidable({})
        cloudinary.config({
@@ -61,12 +65,11 @@ class newsController {
             console.log('fields:', fields)
             console.log('files:', files)
 
-            if (!files.image || files.image.length === 0) {
-                console.log('No image file provided')
-                return res.status(400).json({ message: 'Image is required' })
-            }
+            const { title, description, category: selectedCategory, imageUrl, galleryImageId } = fields
 
-            const { title, description, category: selectedCategory } = fields
+            if ((!files.image || files.image.length === 0) && (!imageUrl || !imageUrl[0] || !imageUrl[0].trim())) {
+                return res.status(400).json({ message: 'Please select a photographer image' })
+            }
 
             if (!title || !title[0] || !title[0].trim()) {
                 return res.status(400).json({ message: 'Title is required' })
@@ -93,7 +96,27 @@ class newsController {
                 return res.status(400).json({ message: 'Selected category is not active or does not exist' })
             }
 
-            const { url } = await cloudinary.uploader.upload(files.image[0].filepath, { folder: 'news_images' })
+            let url = imageUrl && imageUrl[0] ? imageUrl[0].trim() : ''
+
+            if (files.image && files.image.length > 0) {
+                return res.status(400).json({ message: 'Reporter must use an image uploaded by a photographer' })
+            }
+
+            if (galleryImageId && galleryImageId[0]) {
+                const galleryImage = await galleryModel.findOne({
+                    _id: galleryImageId[0],
+                    url,
+                    status: 'available'
+                })
+
+                if (!galleryImage) {
+                    return res.status(400).json({ message: 'Selected photographer image is not available' })
+                }
+
+                url = galleryImage.url
+            } else {
+                return res.status(400).json({ message: 'Photographer image selection is required' })
+            }
             const status = 'draft'
             const cleanTitle = title[0].trim()
             const baseSlug = createSlug(cleanTitle)
@@ -107,16 +130,23 @@ class newsController {
 
             const news = await newsModel.create({
                 writerId: id,
+                writerName: name,
+                reporterId: id,
+                reporterName: name,
                 title: cleanTitle,
                 slug,
                 category: newsCategory,
                 description: description[0].replace(/\n/g, '<br>'),
                 date: moment().format('LL'),
                 time: moment().format('LTS'),
-                writerName: name,
                 image: url,
-                status: status
+                status: status,
+                ...(galleryImageId && galleryImageId[0] ? { photographerId: (await galleryModel.findById(galleryImageId[0])).photographerId, photographerName: (await authModel.findById((await galleryModel.findById(galleryImageId[0])).photographerId))?.name || '', photoCaption: (await galleryModel.findById(galleryImageId[0])).caption || '' } : {})
             })
+            if (galleryImageId && galleryImageId[0]) {
+                await galleryModel.findByIdAndUpdate(galleryImageId[0], { status: 'used' })
+            }
+
             emitNewsEvent(req, 'news:created', news)
             return res.status(201).json({ message: 'News add success', news })
         } catch (error) {
@@ -389,10 +419,14 @@ class newsController {
     }
 
     get_gallery_images = async (req, res) => {
-        const { id } = req.userInfo
+        const { id, role } = req.userInfo
 
         try {
-            const images = await galleryModel.find({ writerId: new ObjectId(id) }).sort({ createdAt: -1 })
+            const query = role === 'reporter'
+                ? { status: 'available' }
+                : { photographerId: new ObjectId(id) }
+
+            const images = await galleryModel.find(query).sort({ createdAt: -1 })
             return res.status(200).json({ images })
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error' })
@@ -449,9 +483,12 @@ class newsController {
     }
 
     add_images = async (req, res) => {
-
         const form = formidable({})
-        const { id } = req.userInfo
+        const { id, name, role } = req.userInfo
+
+        if (role !== 'photographer') {
+            return res.status(403).json({ message: 'Only photographers can upload newsroom images' })
+        }
 
         cloudinary.config({
             cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -461,22 +498,28 @@ class newsController {
         })
 
         try {
-            const [_, files] = await form.parse(req)
-            let allImages = []
-            const { images } = files
+            const [fields, files] = await form.parse(req)
+            const images = files.images
+            const caption = fields.caption?.[0]?.trim() || ''
 
             if (!images || images.length === 0) {
                 return res.status(400).json({ message: 'No images provided' })
             }
 
-            for (let i = 0; i < images.length; i++) {
-                const { url } = await cloudinary.uploader.upload(images[i].filepath, { folder: 'news_images' })
-                allImages.push({ writerId: id, url })
+            const allImages = []
+            for (const image of images) {
+                const { url } = await cloudinary.uploader.upload(image.filepath, { folder: 'news_images' })
+                allImages.push({
+                    photographerId: id,
+                    photographerName: name,
+                    caption,
+                    url,
+                    status: 'available'
+                })
             }
 
-            const image = await galleryModel.insertMany(allImages)
-            return res.status(201).json({ images: image, message: "images upload success" })
-
+            const savedImages = await galleryModel.insertMany(allImages)
+            return res.status(201).json({ images: savedImages, message: 'Images uploaded successfully' })
         } catch (error) {
             console.log('Error in add_images:', error)
             return res.status(500).json({ message: 'Internal server error' })
