@@ -93,7 +93,7 @@ const Sidebar = () => {
                             </Link>
                         </li>
                         <li>
-                            <Link to='/dashboard/photographer' className={`px-3 ${pathname === '/dashboard/photographer' ? 'bg-red-500 text-white' : 'bg-white text-[#404040f6]'} py-2 hover:shadow-lg hover:shadow-red-500/20 w-full rounded-sm flex gap-x-2 justify-start items-center hover:bg-red-500 hover:text-white`}>
+                            <Link to='/dashboard/photographer/upload' className={`px-3 ${pathname === '/dashboard/photographer/upload' ? 'bg-red-500 text-white' : 'bg-white text-[#404040f6]'} py-2 hover:shadow-lg hover:shadow-red-500/20 w-full rounded-sm flex gap-x-2 justify-start items-center hover:bg-red-500 hover:text-white`}>
                                 <span className='text-xl'><MdCategory /></span>
                                 <span>Photo Uploads</span>
                             </Link>
