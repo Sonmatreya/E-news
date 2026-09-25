@@ -97,13 +97,14 @@ class newsController {
             }
 
             let url = imageUrl && imageUrl[0] ? imageUrl[0].trim() : ''
+            let galleryImage = null
 
             if (files.image && files.image.length > 0) {
                 return res.status(400).json({ message: 'Reporter must use an image uploaded by a photographer' })
             }
 
             if (galleryImageId && galleryImageId[0]) {
-                const galleryImage = await galleryModel.findOne({
+                galleryImage = await galleryModel.findOne({
                     _id: galleryImageId[0],
                     url,
                     status: 'available'
@@ -141,7 +142,9 @@ class newsController {
                 time: moment().format('LTS'),
                 image: url,
                 status: status,
-                ...(galleryImageId && galleryImageId[0] ? { photographerId: (await galleryModel.findById(galleryImageId[0])).photographerId, photographerName: (await authModel.findById((await galleryModel.findById(galleryImageId[0])).photographerId))?.name || '', photoCaption: (await galleryModel.findById(galleryImageId[0])).caption || '' } : {})
+                photographerId: galleryImage.photographerId,
+                photographerName: galleryImage.photographerName,
+                photoCaption: galleryImage.caption || ''
             })
             if (galleryImageId && galleryImageId[0]) {
                 await galleryModel.findByIdAndUpdate(galleryImageId[0], { status: 'used' })
