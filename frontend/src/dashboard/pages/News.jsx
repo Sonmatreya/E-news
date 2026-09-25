@@ -11,7 +11,7 @@ const News = () => {
             <div className='flex justify-between p-4'>
                 <h2 className='text-xl font-medium'>News</h2>
                 {
-                    store.userInfo && (store.userInfo.role === 'writer' || store.userInfo.role === 'reporter' || store.userInfo.role === 'photographer') && <Link className='px-3 py-[6px] bg-red-500 rounded-sm text-white hover:bg-red-600' to='/dashboard/news/create'>Create News</Link>
+                    store.userInfo && (store.userInfo.role === 'reporter') && <Link className='px-3 py-[6px] bg-red-500 rounded-sm text-white hover:bg-red-600' to='/dashboard/news/create'>Create News</Link>
                 }
 
             </div>
