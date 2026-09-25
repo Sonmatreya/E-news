@@ -290,7 +290,7 @@ class newsController {
         // Workflow logic with verification
         if (role === 'admin') {
             // Admin can publish, reject, or deactivate any news
-            if (status === 'published') {
+            if (status === 'published' && news.status === 'reviewed_by_editor') {
                 const updateData = {
                     status,
                     verificationStatus: 'final',
@@ -325,7 +325,7 @@ class newsController {
                 emitNewsEvent(req, 'news:status', updatedNews)
                 return res.status(200).json({ message: 'news status update success', news: updatedNews })
             } else {
-                return res.status(401).json({ message: 'Admin can only publish, reject, or deactivate news' })
+                return res.status(401).json({ message: 'Admin can publish only after editor review' })
             }
         } else if (role === 'editor') {
             // Editor can review writer-verified news, rework needed news, or reject them
