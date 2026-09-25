@@ -3,12 +3,31 @@ const { model, Schema } = require('mongoose')
 const newsSchema = new Schema({
     writerId: {
         type: Schema.Types.ObjectId,
-        required: true,
         ref: 'authors'
     },
     writerName: {
         type: String,
-        required: true
+        default: ''
+    },
+    photographerId: {
+        type: Schema.Types.ObjectId,
+        ref: 'authors'
+    },
+    photographerName: {
+        type: String,
+        default: ''
+    },
+    reporterId: {
+        type: Schema.Types.ObjectId,
+        ref: 'authors'
+    },
+    reporterName: {
+        type: String,
+        default: ''
+    },
+    photoCaption: {
+        type: String,
+        default: ''
     },
     title: {
         type: String,
