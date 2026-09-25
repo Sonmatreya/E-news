@@ -5,7 +5,7 @@ import { MdCloudUpload } from "react-icons/md";
 import copy from 'copy-text-to-clipboard'
 import toast from 'react-hot-toast';
 
-const Galler = ({ setShow, images }) => {
+const Galler = ({ setShow, images, onSelect }) => {
 
     const copy_url = (url)=>{
         copy(url)
@@ -34,7 +34,10 @@ const Galler = ({ setShow, images }) => {
                     </div>
                     <div className='grid grid-cols-4 gap-x-2 mt-3'>
                         {
-                            images.length>0 && images.map((img,i)=><div className=' cursor-pointer' onClick={()=>copy_url(img.url)} key={i}  >
+                            images.length>0 && images.map((img,i)=><div className=' cursor-pointer' onClick={() => {
+                                                if (onSelect) onSelect(img)
+                                                else copy_url(img.url)
+                                            }} key={i}  >
                                 <img src={img.url} alt="image" className='w-full h-[100px]' />
                             </div>)
                         }
