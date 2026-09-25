@@ -7,7 +7,7 @@ const ProtectRole = ({ role }) => {
     const { store } = useContext(storeContext)
 
     if (role === 'writerOrReporter') {
-        if (store.userInfo?.role === 'writer' || store.userInfo?.role === 'reporter' || store.userInfo?.role === 'photographer') {
+        if (store.userInfo?.role === 'writer' || store.userInfo?.role === 'reporter') {
             return <Outlet />
         } else {
             return <Navigate to='/dashboard/unable-access' />
