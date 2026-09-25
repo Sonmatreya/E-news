@@ -8,6 +8,7 @@ import storeContext from '../../context/storeContext'
 import toast from 'react-hot-toast'
 import htmlParser from 'react-html-parser'
 import ExternalNewsImport from './ExternalNewsImport'
+import socket from '../../socket'
 
 const NewContent = () => {
 
@@ -40,6 +41,25 @@ const NewContent = () => {
     useEffect(() => {
         get_news()
     }, [])
+
+    useEffect(() => {
+        const refreshNews = () => {
+            get_news()
+        }
+
+        socket.on('news:created', refreshNews)
+        socket.on('news:updated', refreshNews)
+        socket.on('news:status', refreshNews)
+        socket.on('news:deleted', refreshNews)
+
+        return () => {
+            socket.off('news:created', refreshNews)
+            socket.off('news:updated', refreshNews)
+            socket.off('news:status', refreshNews)
+            socket.off('news:deleted', refreshNews)
+        }
+    }, [store.token])
+
 
     useEffect(() => {
         if (news.length > 0) {
